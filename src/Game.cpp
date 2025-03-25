@@ -174,11 +174,11 @@ void Game::render()
     glClearColor(0.53f, 0.81f, 0.98f, 1.0f); // renk ata arka plana
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // float timeValue = SDL_GetTicks() / 1000.0f * 6;
-    // float redValue = sin(timeValue) / 2.0f + 0.5f; // bu islem ile sin degerinin 0 ile 1 arasinda dalgali olarak sonuclar uretmesini saglariz
-    // int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+    float timeValue = SDL_GetTicks() / 1000.0f * 6;
+    float redValue = sin(timeValue) / 2.0f + 0.5f; // bu islem ile sin degerinin 0 ile 1 arasinda dalgali olarak sonuclar uretmesini saglariz
+    int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
     glUseProgram(shaderProgram);
-    // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
+    glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
