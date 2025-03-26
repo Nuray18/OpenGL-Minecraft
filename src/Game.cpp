@@ -100,16 +100,11 @@ void Game::setupOpenGL()
 
     // Üçgenin köşe verileri (x, y, z)
     float vertices[] = {
-        // positions         // colors
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,   // top right
-        -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top left
-        0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
+        // positions
+        0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        0.0f, 0.5f, 0.0f    // top
     };
-
-    unsigned int indices[] = {
-        0, 1, 2,
-        1, 2, 3};
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -120,17 +115,17 @@ void Game::setupOpenGL()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);                                        // open
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // put data inside
 
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // glGenBuffers(1, &EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // upload the vertex attibute burda VBO ya vertex shader icin vertices ve indices verilerinin nasil kullanilacagini anlatir yani ilk deger iknci deger ne yapar gibi felan
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // fonksiyonu, VBO içindeki verinin nasıl işleneceğini OpenGL'e bildirir.
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0); // fonksiyonu, VBO içindeki verinin nasıl işleneceğini OpenGL'e bildirir.
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // unenable it
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    // glEnableVertexAttribArray(1);
+    //  unenable it
     glBindVertexArray(0);
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
@@ -174,14 +169,14 @@ void Game::render()
     glClearColor(0.53f, 0.81f, 0.98f, 1.0f); // renk ata arka plana
     glClear(GL_COLOR_BUFFER_BIT);
 
-    float timeValue = SDL_GetTicks() / 1000.0f * 6;
-    float redValue = sin(timeValue) / 2.0f + 0.5f; // bu islem ile sin degerinin 0 ile 1 arasinda dalgali olarak sonuclar uretmesini saglariz
-    int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+    // float timeValue = SDL_GetTicks() / 1000.0f * 6;
+    // float redValue = sin(timeValue) / 2.0f + 0.5f; // bu islem ile sin degerinin 0 ile 1 arasinda dalgali olarak sonuclar uretmesini saglariz
+    // int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
     glUseProgram(shaderProgram);
-    glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
+    // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     SDL_GL_SwapWindow(window);
 }
