@@ -27,6 +27,7 @@ private:
     void render();
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
+    unsigned int LoadTexture(const char *path);
 
     bool running() { return isRunning; }
 
@@ -45,6 +46,8 @@ private:
     unsigned int vertexShader;
     unsigned int fragmentShader;
     unsigned int shaderProgram;
+
+    unsigned int texture;
 
     unsigned int EBO;
     unsigned int VAO; // vertex array object
