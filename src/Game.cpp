@@ -96,6 +96,34 @@ GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
     return shaderProgram;
 }
 
+void Game::CheckShaderErrors()
+{
+    GLint success;
+    GLchar infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cerr << "Vertex Shader Compilation Failed: " << infoLog << std::endl;
+    }
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        std::cerr << "Fragment Shader Compilation Failed: " << infoLog << std::endl;
+    }
+}
+
+void Game::CheckErrors()
+{
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR)
+    {
+        std::cout << "OpenGL Error: " << error << std::endl;
+    }
+}
+
 unsigned int Game::LoadTexture(const char *path)
 {
     // shaderlerden sonra textureler geliyor biz ilk bunlari OpenGL'e tanitiyoruz
@@ -112,7 +140,8 @@ unsigned int Game::LoadTexture(const char *path)
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB; // 4 kanal varsa RGBA, yoksa RGB
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -121,6 +150,8 @@ unsigned int Game::LoadTexture(const char *path)
     }
 
     stbi_image_free(data);
+
+    return texture;
 }
 
 void Game::setupOpenGL()
@@ -138,10 +169,14 @@ void Game::setupOpenGL()
 
     unsigned int indices[] =
         {
-            0, 1, 2,
-            1, 2, 3};
+            0, 1, 2, // İlk üçgen (Üst sağ, alt sağ, alt sol)
+            2, 3, 0  // İkinci üçgen (Alt sol, üst sol, üst sağ)
+        };
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
+
+    CheckShaderErrors();
+    CheckErrors();
 
     LoadTexture("images/Block.png");
 
@@ -216,8 +251,11 @@ void Game::render()
     glUseProgram(shaderProgram);
     // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
+    glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture"), 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     SDL_GL_SwapWindow(window);
 }

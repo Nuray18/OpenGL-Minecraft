@@ -28,6 +28,8 @@ private:
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
     unsigned int LoadTexture(const char *path);
+    void CheckShaderErrors();
+    void CheckErrors();
 
     bool running() { return isRunning; }
 
