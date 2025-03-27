@@ -133,8 +133,8 @@ unsigned int Game::LoadTexture(const char *path)
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); // texture'yi uzaklastirdigimizda
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);               // texture'yi yakinlastirdigimizda
 
     int width, height, nrChannels;
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
@@ -165,6 +165,7 @@ void Game::setupOpenGL()
         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
         -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
+
     };
 
     unsigned int indices[] =
@@ -175,10 +176,11 @@ void Game::setupOpenGL()
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
+    // error checks
     CheckShaderErrors();
     CheckErrors();
 
-    LoadTexture("images/Block.png");
+    LoadTexture("images/NewPixel.png");
 
     // enable it
     glGenVertexArrays(1, &VAO);
