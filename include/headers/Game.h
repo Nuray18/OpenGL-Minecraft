@@ -49,7 +49,8 @@ private:
     unsigned int fragmentShader;
     unsigned int shaderProgram;
 
-    unsigned int texture;
+    unsigned int texture1;
+    unsigned int texture2;
 
     unsigned int EBO;
     unsigned int VAO; // vertex array object

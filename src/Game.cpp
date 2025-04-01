@@ -126,12 +126,13 @@ void Game::CheckErrors()
 
 unsigned int Game::LoadTexture(const char *path)
 {
+    unsigned int tempTexture;
     // shaderlerden sonra textureler geliyor biz ilk bunlari OpenGL'e tanitiyoruz
     // 1️⃣ Create a texture object on the GPU
-    glGenTextures(1, &texture);
+    glGenTextures(1, &tempTexture);
 
     // 2️⃣ Bind the texture (Tell OpenGL we are working on this texture now)
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D, tempTexture);
 
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // bu texturenin x ekseni ve 0-1 disinda olan yerleri nasil render edecegini belirler.
@@ -161,7 +162,7 @@ unsigned int Game::LoadTexture(const char *path)
     // 🔹 You can now delete the original data from RAM because the GPU has its own copy.
     stbi_image_free(data);
 
-    return texture;
+    return tempTexture;
 }
 
 void Game::setupOpenGL()
@@ -190,7 +191,8 @@ void Game::setupOpenGL()
     CheckShaderErrors();
     CheckErrors();
 
-    LoadTexture("images/NewPixel.png");
+    texture1 = LoadTexture("images/NewPixel.png"); // birinci texture
+    texture2 = LoadTexture("images/Block.png");    // ikinci texture
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -254,7 +256,7 @@ void Game::handleEvents(SDL_Event &event)
 void Game::render()
 {
 
-    glClearColor(0.53f, 0.81f, 0.98f, 1.0f); // renk ata arka plana
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // renk ata arka plana
     glClear(GL_COLOR_BUFFER_BIT);
 
     // float timeValue = SDL_GetTicks() / 1000.0f * 6;
@@ -263,10 +265,14 @@ void Game::render()
     glUseProgram(shaderProgram);
     // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture"), 0); // called function for integers
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0); // GL_TEXTURE0 için
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1); // GL_TEXTURE1 için
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
