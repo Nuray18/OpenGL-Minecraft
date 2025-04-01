@@ -127,18 +127,25 @@ void Game::CheckErrors()
 unsigned int Game::LoadTexture(const char *path)
 {
     // shaderlerden sonra textureler geliyor biz ilk bunlari OpenGL'e tanitiyoruz
+    // 1️⃣ Create a texture object on the GPU
     glGenTextures(1, &texture);
+
+    // 2️⃣ Bind the texture (Tell OpenGL we are working on this texture now)
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // bu texturenin x ekseni ve 0-1 disinda olan yerleri nasil render edecegini belirler.
+    // in here we say that make the x or y axis GL_REPEAT or any other
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // bu texturenin y ekseni ve 0-1 disinda olan yerleri nasil render edecegini belirler.
+    // but if we want to use GL_CLAMP_TO_BORDER we need to deine color and use glTexParameterfv for float array.
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); // texture'yi uzaklastirdigimizda
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);               // texture'yi yakinlastirdigimizda
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); // texture'yi uzaklastirdigimizda. Also here we use mipmaps becouse we scale this down with minifiction
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);               // texture'yi yakinlastirdigimizda. And here we dont have to use mipmaps since they primarily used for when textures get downscaled
 
+    // 3️⃣ Load the image data from file (CPU RAM)
     int width, height, nrChannels; // in rbChanneles there can be RGBA and RGB only so it depends
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+    // 4️⃣ Transfer the image data to GPU memory
     if (data)
     {
         GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB; // 4 kanal varsa RGBA, yoksa RGB
@@ -150,6 +157,8 @@ unsigned int Game::LoadTexture(const char *path)
         std::cout << "Failed to load texture" << std::endl;
     }
 
+    // 🔹 After this, the image is stored inside the GPU, and the CPU doesn’t need it anymore.
+    // 🔹 You can now delete the original data from RAM because the GPU has its own copy.
     stbi_image_free(data);
 
     return texture;
@@ -254,10 +263,7 @@ void Game::render()
     glUseProgram(shaderProgram);
     // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture"), 0);
-
-    float currentTime = SDL_GetTicks() / 1000.0f; // SDL_GetTicks() milisaniye döndürür, saniyeye çevirmek için 1000'e böldük.
-    glUniform1f(glGetUniformLocation(shaderProgram, "time"), currentTime);
+    glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture"), 0); // called function for integers
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
