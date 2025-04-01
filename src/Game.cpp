@@ -131,12 +131,13 @@ unsigned int Game::LoadTexture(const char *path)
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // bu texturenin x ekseni ve 0-1 disinda olan yerleri nasil render edecegini belirler.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // bu texturenin y ekseni ve 0-1 disinda olan yerleri nasil render edecegini belirler.
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); // texture'yi uzaklastirdigimizda
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);               // texture'yi yakinlastirdigimizda
 
-    int width, height, nrChannels;
+    int width, height, nrChannels; // in rbChanneles there can be RGBA and RGB only so it depends
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
     if (data)
     {
@@ -254,10 +255,15 @@ void Game::render()
     // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture"), 0);
+
+    float currentTime = SDL_GetTicks() / 1000.0f; // SDL_GetTicks() milisaniye döndürür, saniyeye çevirmek için 1000'e böldük.
+    glUniform1f(glGetUniformLocation(shaderProgram, "time"), currentTime);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glBindVertexArray(VAO);
 
+    glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
     SDL_GL_SwapWindow(window);
 }
