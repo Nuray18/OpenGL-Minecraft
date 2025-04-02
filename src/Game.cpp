@@ -126,6 +126,8 @@ void Game::CheckErrors()
 
 unsigned int Game::LoadTexture(const char *path)
 {
+    // stbi_set_flip_vertically_on_load(true);
+
     unsigned int tempTexture;
     // shaderlerden sonra textureler geliyor biz ilk bunlari OpenGL'e tanitiyoruz
     // 1️⃣ Create a texture object on the GPU
