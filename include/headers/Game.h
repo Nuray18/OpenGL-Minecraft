@@ -52,6 +52,8 @@ private:
     unsigned int texture1;
     unsigned int texture2;
 
+    float alphaValue;
+
     unsigned int EBO;
     unsigned int VAO; // vertex array object
     unsigned int VBO; // vertex buffer object

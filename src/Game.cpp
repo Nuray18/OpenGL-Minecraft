@@ -13,6 +13,8 @@ Game::Game()
     screenHeight = 600;
 
     player = new Player(100, 100, 50, 60);
+
+    alphaValue = 0.5f;
 }
 
 Game::~Game()
@@ -249,8 +251,26 @@ void Game::handleEvents(SDL_Event &event)
 {
     switch (event.type)
     {
-    case SDL_QUIT:                   // bu function ekrandaki x buttonuna basarak oyundan cikmagi saglar.
-        gameState = GameState::EXIT; // burda gameState Exit oldugunda gameLoop functionu yanlis olur ve dongu biter.
+    case SDL_QUIT: // Oyunu kapatma
+        gameState = GameState::EXIT;
+        break;
+
+    case SDL_KEYDOWN: // Klavye tuşuna basılınca
+        switch (event.key.keysym.sym)
+        {
+        case SDLK_UP:
+            if (alphaValue < 1.0f && alphaValue >= 0.0f)
+                alphaValue += 0.1f;
+            if (alphaValue > 1.0f)
+                alphaValue = 1.0f;
+            break;
+        case SDLK_DOWN:
+            if (alphaValue <= 1.0f && alphaValue > 0.0f)
+                alphaValue -= 0.1f;
+            if (alphaValue < 0.0f)
+                alphaValue = 0.0f;
+            break;
+        }
         break;
     }
 }
@@ -269,6 +289,9 @@ void Game::render()
 
     glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0); // GL_TEXTURE0 için
     glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1); // GL_TEXTURE1 için
+
+    // changing the alpha value with arrow keys
+    glUniform1f(glGetUniformLocation(shaderProgram, "alpha"), alphaValue); // get the location and set the uniform value to alphaValue.
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
