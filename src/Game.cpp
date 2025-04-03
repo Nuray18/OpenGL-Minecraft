@@ -1,6 +1,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "headers/stb_image.h"
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include <cmath>
 
 using namespace std;
