@@ -1,9 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "headers/stb_image.h"
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 #include <cmath>
 
 using namespace std;
@@ -288,13 +285,20 @@ void Game::render()
     // float redValue = sin(timeValue) / 2.0f + 0.5f; // bu islem ile sin degerinin 0 ile 1 arasinda dalgali olarak sonuclar uretmesini saglariz
     // int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
     glUseProgram(shaderProgram);
-    // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0); // GL_TEXTURE0 için
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1); // GL_TEXTURE1 için
+    transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));                              // pozisyonu degistirmek
+    transform = glm::rotate(transform, (float)SDL_GetTicks() / 1000.0f, glm::vec3(0.0f, 0.0f, 1.0f)); // dondurmek
+    transform = glm::scale(transform, glm::vec3(0.5, 0.5, 0.5));                                      // kucultmek
+
+    // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(transform));
 
     // changing the alpha value with arrow keys
     glUniform1f(glGetUniformLocation(shaderProgram, "alpha"), alphaValue); // get the location and set the uniform value to alphaValue.
+
+    // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0); // GL_TEXTURE0 için
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1); // GL_TEXTURE1 için
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);

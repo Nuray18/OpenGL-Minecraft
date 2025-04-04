@@ -1,9 +1,12 @@
 #pragma once
+#include "headers/Player.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include <glad/glad.h>
 #include <iostream>
 #include <vector>
 #include <sdl/SDL.h>
-#include "headers/Player.h"
 #include <fstream>
 #include <sstream>
 
@@ -42,6 +45,8 @@ private:
     GameState gameState;
 
     Player *player; // Player classina point eden player pointer
+
+    glm::mat4 transform;
 
     bool isRunning;
 
