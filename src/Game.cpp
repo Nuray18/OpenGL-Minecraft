@@ -14,7 +14,7 @@ Game::Game()
 
     player = new Player(100, 100, 50, 60);
 
-    alphaValue = 0.5f;
+    alfa = 0.0f;
 }
 
 Game::~Game()
@@ -175,19 +175,15 @@ void Game::setupOpenGL()
 
     // Üçgenin köşe verileri (x, y, z)
     float vertices[] = {
-        // positions      // colors        // texture coords
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,   // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f   // top left
-
+        // positions          // colors           // texture coords
+        0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 1.0f,   // top center
+        -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom left
+        1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f   // bottom right
     };
 
     unsigned int indices[] =
         {
-            0, 1, 2, // İlk üçgen (Üst sağ, alt sağ, alt sol)
-            2, 3, 0  // İkinci üçgen (Alt sol, üst sol, üst sağ)
-        };
+            0, 1, 2};
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
@@ -195,8 +191,8 @@ void Game::setupOpenGL()
     CheckShaderErrors();
     CheckErrors();
 
-    texture1 = LoadTexture("images/NewPixel.png"); // birinci texture
-    texture2 = LoadTexture("images/Block.png");    // ikinci texture
+    texture1 = LoadTexture("images/Block.png"); // birinci texture
+    texture2 = LoadTexture("images/NewPixel.png");
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -243,7 +239,7 @@ void Game::gameLoop()
         }
 
         // player->update(deltaTime);
-        render(); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
+        render(deltaTime); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
     }
 }
 
@@ -254,60 +250,34 @@ void Game::handleEvents(SDL_Event &event)
     case SDL_QUIT: // Oyunu kapatma
         gameState = GameState::EXIT;
         break;
-
-    case SDL_KEYDOWN: // Klavye tuşuna basılınca
-        switch (event.key.keysym.sym)
-        {
-        case SDLK_UP:
-            if (alphaValue < 1.0f && alphaValue >= 0.0f)
-                alphaValue += 0.1f;
-            if (alphaValue > 1.0f)
-                alphaValue = 1.0f;
-            break;
-        case SDLK_DOWN:
-            if (alphaValue <= 1.0f && alphaValue > 0.0f)
-                alphaValue -= 0.1f;
-            if (alphaValue < 0.0f)
-                alphaValue = 0.0f;
-            break;
-        }
-        break;
     }
 }
 
-void Game::render()
+void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirmek icin lazim parametre
 {
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // renk ata arka plana
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // float timeValue = SDL_GetTicks() / 1000.0f * 6;
-    // float redValue = sin(timeValue) / 2.0f + 0.5f; // bu islem ile sin degerinin 0 ile 1 arasinda dalgali olarak sonuclar uretmesini saglariz
-    // int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
     glUseProgram(shaderProgram);
 
-    transform = glm::mat4(1.0f);
-    transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));                              // pozisyonu degistirmek
-    transform = glm::rotate(transform, (float)SDL_GetTicks() / 1000.0f, glm::vec3(0.0f, 0.0f, 1.0f)); // dondurmek
-    transform = glm::scale(transform, glm::vec3(0.5, 0.5, 0.5));                                      // kucultmek
-
-    // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(transform));
-
-    // changing the alpha value with arrow keys
-    glUniform1f(glGetUniformLocation(shaderProgram, "alpha"), alphaValue); // get the location and set the uniform value to alphaValue.
-
-    // glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 0.5f);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0); // GL_TEXTURE0 için
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1); // GL_TEXTURE1 için
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
+    glUniform1f(glGetUniformLocation(shaderProgram, "alfa"), alfa);
+
+    if (alfa < 1.0f)
+        alfa += 0.3f * deltaTime;
+    else
+        alfa = 1.0f;
+
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(window);
 }

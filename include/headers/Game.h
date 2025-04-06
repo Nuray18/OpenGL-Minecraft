@@ -27,7 +27,7 @@ private:
     void init(const char *title, int x, int y, int w, int h, Uint32 flags);
     void handleEvents(SDL_Event &event);
     void gameLoop();
-    void render();
+    void render(float deltaTime);
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
     unsigned int LoadTexture(const char *path);
@@ -57,7 +57,7 @@ private:
     unsigned int texture1;
     unsigned int texture2;
 
-    float alphaValue;
+    float alfa;
 
     unsigned int EBO;
     unsigned int VAO; // vertex array object

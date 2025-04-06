@@ -7,12 +7,13 @@ in vec2 TexCoord;
 
 uniform sampler2D texture1;
 uniform sampler2D texture2;
-uniform float alpha;
+
+uniform float alfa;
 
 void main()
 {
     vec4 color1 = texture(texture1, TexCoord); // İlk texture’dan renk al
-    vec4 color2 = texture(texture2, TexCoord); // İkinci texture’dan renk al
-    
-    FragColor = mix(color1, color2, alpha); // İki texture’ı karıştır (blend)
+    vec4 color2 = texture(texture2, TexCoord);
+
+    FragColor = mix(color1, color2, alfa); // İki texture’ı karıştır (blend)
 };
