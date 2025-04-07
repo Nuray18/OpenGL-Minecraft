@@ -47,6 +47,7 @@ private:
     Player *player; // Player classina point eden player pointer
 
     glm::mat4 transform;
+    glm::vec3 cubePositions[10];
 
     bool isRunning;
 
@@ -55,9 +56,6 @@ private:
     unsigned int shaderProgram;
 
     unsigned int texture1;
-    unsigned int texture2;
-
-    float alfa;
 
     unsigned int EBO;
     unsigned int VAO; // vertex array object

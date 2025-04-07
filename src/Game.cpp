@@ -4,6 +4,7 @@
 #include <cmath>
 
 using namespace std;
+using namespace glm;
 
 Game::Game()
 {
@@ -13,8 +14,6 @@ Game::Game()
     screenHeight = 600;
 
     player = new Player(100, 100, 50, 60);
-
-    alfa = 0.0f;
 }
 
 Game::~Game()
@@ -174,16 +173,68 @@ void Game::setupOpenGL()
     glViewport(0, 0, screenWidth, screenHeight);
 
     // Üçgenin köşe verileri (x, y, z)
+    // Vertex ve UV koordinatları
     float vertices[] = {
-        // positions          // colors           // texture coords
-        0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 1.0f,   // top center
-        -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom left
-        1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f   // bottom right
+        // FRONT
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 0
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // 1
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // 2
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // 3
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,  // 4
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 5
+
+        // BACK
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // 6
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,  // 7
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 8
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 9
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,  // 10
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // 11
+
+        // LEFT
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 12
+        -0.5f, 0.5f, -0.5f, 1.0f, 0.0f,  // 13
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 14
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 15
+        -0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 16
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 17
+
+        // RIGHT
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 18
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f,  // 19
+        0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 20
+        0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 21
+        0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 22
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 23
+
+        // BOTTOM
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 24
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // 25
+        0.5f, -0.5f, 0.5f, 1.0f, 1.0f,   // 26
+        0.5f, -0.5f, 0.5f, 1.0f, 1.0f,   // 27
+        -0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 28
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 29
+
+        // TOP
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, // 30
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f,  // 31
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 32
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 33
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,  // 34
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f  // 35
     };
 
-    unsigned int indices[] =
-        {
-            0, 1, 2};
+    // world space positions of our cubes
+    cubePositions[0] = vec3(0.0f, 0.0f, 0.0f);
+    cubePositions[1] = vec3(2.0f, 5.0f, -15.0f);
+    cubePositions[2] = vec3(-1.5f, -2.2f, -2.5f);
+    cubePositions[3] = vec3(-3.8f, -2.0f, -12.3f);
+    cubePositions[4] = vec3(2.4f, -0.4f, -3.5f);
+    cubePositions[5] = vec3(-1.7f, 3.0f, -7.5f);
+    cubePositions[6] = vec3(1.3f, -2.0f, -2.5f);
+    cubePositions[7] = vec3(1.5f, 2.0f, -2.5f);
+    cubePositions[8] = vec3(1.5f, 0.2f, -1.5f);
+    cubePositions[9] = vec3(-1.3f, 1.0f, -1.5f);
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
@@ -191,8 +242,7 @@ void Game::setupOpenGL()
     CheckShaderErrors();
     CheckErrors();
 
-    texture1 = LoadTexture("images/Block.png"); // birinci texture
-    texture2 = LoadTexture("images/NewPixel.png");
+    texture1 = LoadTexture("images/GrassBlock.png"); // birinci texture
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -203,19 +253,16 @@ void Game::setupOpenGL()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);                                        // open
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // put data inside
 
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // glGenBuffers(1, &EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // upload the vertex attibute burda VBO ya vertex shader icin vertices ve indices verilerinin nasil kullanilacagini anlatir yani ilk deger iknci deger ne yapar gibi felan
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0); // fonksiyonu, VBO içindeki verinin nasıl işleneceğini OpenGL'e bildirir.
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0); // fonksiyonu, VBO içindeki verinin nasıl işleneceğini OpenGL'e bildirir.
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
 
     //  unenable it
     glBindVertexArray(0);
@@ -255,9 +302,9 @@ void Game::handleEvents(SDL_Event &event)
 
 void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirmek icin lazim parametre
 {
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // renk ata arka plana
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.75f, 0.75f, 0.75f, 1.0f);            // renk ata arka plana
+    glEnable(GL_DEPTH_TEST);                            // enables the depth so we can draw each sides in the true way
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame
 
     glUseProgram(shaderProgram);
 
@@ -265,19 +312,35 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
+    mat4 view = mat4(1.0f);
+    mat4 projection = mat4(1.0f);
 
-    glUniform1f(glGetUniformLocation(shaderProgram, "alfa"), alfa);
+    view = translate(view, vec3(0.0f, 0.0f, -3.0f));
+    projection = perspective(radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
-    if (alfa < 1.0f)
-        alfa += 0.3f * deltaTime;
-    else
-        alfa = 1.0f;
+    // retrieve the matrix uniform locations
+    unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
+    unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+    // pass them to the shaders (3 different ways)
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        // calculate the model matrix for each object and pass it to shader before drawing
+        mat4 model = mat4(1.0f);
+        model = translate(model, cubePositions[i]);
+
+        float angle = i == 0 ? 10.0f : 20.0f * i;
+
+        model = rotate(model, (float)SDL_GetTicks() / 1000.f * radians(angle), vec3(1.0f, 0.3f, 0.5f));
+
+        int modelLoc = glGetUniformLocation(shaderProgram, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 
     SDL_GL_SwapWindow(window);
 }
