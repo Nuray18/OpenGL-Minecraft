@@ -97,6 +97,15 @@ GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
     return shaderProgram;
 }
 
+UVRange Game::GetUVRange(int totalRows, int rowIndex)
+{
+    float rowHeight = 1.0f / totalRows;
+    float vMax = 1.0f - rowHeight * rowIndex;
+    float vMin = vMax - rowHeight;
+
+    return {vMin, vMax};
+}
+
 void Game::CheckShaderErrors()
 {
     GLint success;
@@ -173,55 +182,62 @@ void Game::setupOpenGL()
     glViewport(0, 0, screenWidth, screenHeight);
 
     // Üçgenin köşe verileri (x, y, z)
-    // Vertex ve UV koordinatları
+    // Vertex ve UV koordinatları (u, v)
+    float u0 = 0.0f;
+    float u1 = 1.0f;
+
+    UVRange topUV = GetUVRange(3, 0); // Top view
+    UVRange MidUV = GetUVRange(3, 1); // Side view
+    UVRange BotUV = GetUVRange(3, 2); // Bottom view
+
     float vertices[] = {
-        // FRONT
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 0
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // 1
-        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // 2
-        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // 3
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,  // 4
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 5
+        // FRONT (Side view)
+        -0.5f, -0.5f, -0.5f, u0, MidUV.vMin, // 0
+        0.5f, -0.5f, -0.5f, u1, MidUV.vMin,  // 1
+        0.5f, 0.5f, -0.5f, u1, MidUV.vMax,   // 2
+        0.5f, 0.5f, -0.5f, u1, MidUV.vMax,   // 3
+        -0.5f, 0.5f, -0.5f, u0, MidUV.vMax,  // 4
+        -0.5f, -0.5f, -0.5f, u0, MidUV.vMin, // 5
 
-        // BACK
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // 6
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,  // 7
-        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 8
-        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 9
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,  // 10
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // 11
+        // BACK (Side view)
+        -0.5f, -0.5f, 0.5f, u0, MidUV.vMin, // 6
+        0.5f, -0.5f, 0.5f, u1, MidUV.vMin,  // 7
+        0.5f, 0.5f, 0.5f, u1, MidUV.vMax,   // 8
+        0.5f, 0.5f, 0.5f, u1, MidUV.vMax,   // 9
+        -0.5f, 0.5f, 0.5f, u0, MidUV.vMax,  // 10
+        -0.5f, -0.5f, 0.5f, u0, MidUV.vMin, // 11
 
-        // LEFT
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 12
-        -0.5f, 0.5f, -0.5f, 1.0f, 0.0f,  // 13
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 14
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 15
-        -0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 16
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 17
+        // LEFT (Side view)
+        -0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 12
+        -0.5f, 0.5f, -0.5f, u1, MidUV.vMax,  // 13
+        -0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 14
+        -0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 15
+        -0.5f, -0.5f, 0.5f, u0, MidUV.vMin,  // 16
+        -0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 17
 
-        // RIGHT
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 18
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f,  // 19
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 20
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // 21
-        0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 22
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f,   // 23
+        // RIGHT (Side view)
+        0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 18
+        0.5f, 0.5f, -0.5f, u1, MidUV.vMax,  // 19
+        0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 20
+        0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 21
+        0.5f, -0.5f, 0.5f, u0, MidUV.vMin,  // 22
+        0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 23
 
-        // BOTTOM
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 24
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // 25
-        0.5f, -0.5f, 0.5f, 1.0f, 1.0f,   // 26
-        0.5f, -0.5f, 0.5f, 1.0f, 1.0f,   // 27
-        -0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 28
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 29
+        // BOTTOM (Bottom view)
+        -0.5f, -0.5f, -0.5f, u0, BotUV.vMax, // 24
+        0.5f, -0.5f, -0.5f, u1, BotUV.vMax,  // 25
+        0.5f, -0.5f, 0.5f, u1, BotUV.vMin,   // 26
+        0.5f, -0.5f, 0.5f, u1, BotUV.vMin,   // 27
+        -0.5f, -0.5f, 0.5f, u0, BotUV.vMin,  // 28
+        -0.5f, -0.5f, -0.5f, u0, BotUV.vMax, // 29
 
-        // TOP
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, // 30
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f,  // 31
-        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 32
-        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 33
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,  // 34
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f  // 35
+        // TOP (Top view)
+        -0.5f, 0.5f, -0.5f, u0, topUV.vMax, // 30
+        0.5f, 0.5f, -0.5f, u1, topUV.vMax,  // 31
+        0.5f, 0.5f, 0.5f, u1, topUV.vMin,   // 32
+        0.5f, 0.5f, 0.5f, u1, topUV.vMin,   // 33
+        -0.5f, 0.5f, 0.5f, u0, topUV.vMin,  // 34
+        -0.5f, 0.5f, -0.5f, u0, topUV.vMax  // 35
     };
 
     // world space positions of our cubes
@@ -312,10 +328,10 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
-    mat4 view = mat4(1.0f);
-    mat4 projection = mat4(1.0f);
-
+    mat4 view = mat4(1.0f); // camera
     view = translate(view, vec3(0.0f, 0.0f, -3.0f));
+
+    mat4 projection = mat4(1.0f); // perspective look
     projection = perspective(radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
     // retrieve the matrix uniform locations
@@ -326,14 +342,13 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
 
     glBindVertexArray(VAO);
+
     for (unsigned int i = 0; i < 10; i++)
     {
         // calculate the model matrix for each object and pass it to shader before drawing
         mat4 model = mat4(1.0f);
         model = translate(model, cubePositions[i]);
-
         float angle = i == 0 ? 10.0f : 20.0f * i;
-
         model = rotate(model, (float)SDL_GetTicks() / 1000.f * radians(angle), vec3(1.0f, 0.3f, 0.5f));
 
         int modelLoc = glGetUniformLocation(shaderProgram, "model");
@@ -344,3 +359,4 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
 
     SDL_GL_SwapWindow(window);
 }
+// every thing we need to create a 3D cube is Projection, view, model.

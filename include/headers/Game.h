@@ -10,6 +10,12 @@
 #include <fstream>
 #include <sstream>
 
+struct UVRange
+{
+    float vMin;
+    float vMax;
+};
+
 enum class GameState
 {
     PLAY,
@@ -30,6 +36,7 @@ private:
     void render(float deltaTime);
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
+    UVRange GetUVRange(int totalRows, int rowIndex);
     unsigned int LoadTexture(const char *path);
     void CheckShaderErrors();
     void CheckErrors();
