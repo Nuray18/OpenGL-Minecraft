@@ -97,13 +97,18 @@ GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
     return shaderProgram;
 }
 
-UVRange Game::GetUVRange(int totalRows, int rowIndex)
+UVRange Game::GetUVRange(int rowSize, int colSize, int targetIndex)
+// in my texture atlas height is 48, width is 16. now totalRows means how many texture block we have in texture atlas, and rowIndex means witch block we want to have with the index number of it.
 {
-    float rowHeight = 1.0f / totalRows;
-    float vMax = 1.0f - rowHeight * rowIndex;
-    float vMin = vMax - rowHeight;
+    int currRow = targetIndex / colSize;
+    int currCol = targetIndex % colSize;
 
-    return {vMin, vMax};
+    float uMin = 1.0f / colSize * currCol;
+    float uMax = 1.0f / colSize + uMin;
+    float vMin = 1.0f / rowSize * currRow;
+    float vMax = 1.0f / rowSize + vMin;
+
+    return {uMin, uMax, vMin, vMax};
 }
 
 void Game::CheckShaderErrors()
@@ -186,58 +191,58 @@ void Game::setupOpenGL()
     float u0 = 0.0f;
     float u1 = 1.0f;
 
-    UVRange topUV = GetUVRange(3, 0); // Top view
-    UVRange MidUV = GetUVRange(3, 1); // Side view
-    UVRange BotUV = GetUVRange(3, 2); // Bottom view
+    UVRange topUV = GetUVRange(3, 1, 2); // Top view
+    UVRange MidUV = GetUVRange(3, 1, 1); // Side view
+    UVRange BotUV = GetUVRange(3, 1, 0); // Bottom view
 
     float vertices[] = {
         // FRONT (Side view)
-        -0.5f, -0.5f, -0.5f, u0, MidUV.vMin, // 0
-        0.5f, -0.5f, -0.5f, u1, MidUV.vMin,  // 1
-        0.5f, 0.5f, -0.5f, u1, MidUV.vMax,   // 2
-        0.5f, 0.5f, -0.5f, u1, MidUV.vMax,   // 3
-        -0.5f, 0.5f, -0.5f, u0, MidUV.vMax,  // 4
-        -0.5f, -0.5f, -0.5f, u0, MidUV.vMin, // 5
+        -0.5f, -0.5f, -0.5f, MidUV.uMin, MidUV.vMin, // 0
+        0.5f, -0.5f, -0.5f, MidUV.uMax, MidUV.vMin,  // 1
+        0.5f, 0.5f, -0.5f, MidUV.uMax, MidUV.vMax,   // 2
+        0.5f, 0.5f, -0.5f, MidUV.uMax, MidUV.vMax,   // 3
+        -0.5f, 0.5f, -0.5f, MidUV.uMin, MidUV.vMax,  // 4
+        -0.5f, -0.5f, -0.5f, MidUV.uMin, MidUV.vMin, // 5
 
         // BACK (Side view)
-        -0.5f, -0.5f, 0.5f, u0, MidUV.vMin, // 6
-        0.5f, -0.5f, 0.5f, u1, MidUV.vMin,  // 7
-        0.5f, 0.5f, 0.5f, u1, MidUV.vMax,   // 8
-        0.5f, 0.5f, 0.5f, u1, MidUV.vMax,   // 9
-        -0.5f, 0.5f, 0.5f, u0, MidUV.vMax,  // 10
-        -0.5f, -0.5f, 0.5f, u0, MidUV.vMin, // 11
+        -0.5f, -0.5f, 0.5f, MidUV.uMin, MidUV.vMin, // 6
+        0.5f, -0.5f, 0.5f, MidUV.uMax, MidUV.vMin,  // 7
+        0.5f, 0.5f, 0.5f, MidUV.uMax, MidUV.vMax,   // 8
+        0.5f, 0.5f, 0.5f, MidUV.uMax, MidUV.vMax,   // 9
+        -0.5f, 0.5f, 0.5f, MidUV.uMin, MidUV.vMax,  // 10
+        -0.5f, -0.5f, 0.5f, MidUV.uMin, MidUV.vMin, // 11
 
         // LEFT (Side view)
-        -0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 12
-        -0.5f, 0.5f, -0.5f, u1, MidUV.vMax,  // 13
-        -0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 14
-        -0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 15
-        -0.5f, -0.5f, 0.5f, u0, MidUV.vMin,  // 16
-        -0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 17
+        -0.5f, 0.5f, 0.5f, MidUV.uMin, MidUV.vMax,   // 12
+        -0.5f, 0.5f, -0.5f, MidUV.uMax, MidUV.vMax,  // 13
+        -0.5f, -0.5f, -0.5f, MidUV.uMax, MidUV.vMin, // 14
+        -0.5f, -0.5f, -0.5f, MidUV.uMax, MidUV.vMin, // 15
+        -0.5f, -0.5f, 0.5f, MidUV.uMin, MidUV.vMin,  // 16
+        -0.5f, 0.5f, 0.5f, MidUV.uMin, MidUV.vMax,   // 17
 
         // RIGHT (Side view)
-        0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 18
-        0.5f, 0.5f, -0.5f, u1, MidUV.vMax,  // 19
-        0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 20
-        0.5f, -0.5f, -0.5f, u1, MidUV.vMin, // 21
-        0.5f, -0.5f, 0.5f, u0, MidUV.vMin,  // 22
-        0.5f, 0.5f, 0.5f, u0, MidUV.vMax,   // 23
+        0.5f, 0.5f, 0.5f, MidUV.uMin, MidUV.vMax,   // 18
+        0.5f, 0.5f, -0.5f, MidUV.uMax, MidUV.vMax,  // 19
+        0.5f, -0.5f, -0.5f, MidUV.uMax, MidUV.vMin, // 20
+        0.5f, -0.5f, -0.5f, MidUV.uMax, MidUV.vMin, // 21
+        0.5f, -0.5f, 0.5f, MidUV.uMin, MidUV.vMin,  // 22
+        0.5f, 0.5f, 0.5f, MidUV.uMin, MidUV.vMax,   // 23
 
         // BOTTOM (Bottom view)
-        -0.5f, -0.5f, -0.5f, u0, BotUV.vMax, // 24
-        0.5f, -0.5f, -0.5f, u1, BotUV.vMax,  // 25
-        0.5f, -0.5f, 0.5f, u1, BotUV.vMin,   // 26
-        0.5f, -0.5f, 0.5f, u1, BotUV.vMin,   // 27
-        -0.5f, -0.5f, 0.5f, u0, BotUV.vMin,  // 28
-        -0.5f, -0.5f, -0.5f, u0, BotUV.vMax, // 29
+        -0.5f, -0.5f, -0.5f, BotUV.uMin, BotUV.vMax, // 24
+        0.5f, -0.5f, -0.5f, BotUV.uMax, BotUV.vMax,  // 25
+        0.5f, -0.5f, 0.5f, BotUV.uMax, BotUV.vMin,   // 26
+        0.5f, -0.5f, 0.5f, BotUV.uMax, BotUV.vMin,   // 27
+        -0.5f, -0.5f, 0.5f, BotUV.uMin, BotUV.vMin,  // 28
+        -0.5f, -0.5f, -0.5f, BotUV.uMin, BotUV.vMax, // 29
 
         // TOP (Top view)
-        -0.5f, 0.5f, -0.5f, u0, topUV.vMax, // 30
-        0.5f, 0.5f, -0.5f, u1, topUV.vMax,  // 31
-        0.5f, 0.5f, 0.5f, u1, topUV.vMin,   // 32
-        0.5f, 0.5f, 0.5f, u1, topUV.vMin,   // 33
-        -0.5f, 0.5f, 0.5f, u0, topUV.vMin,  // 34
-        -0.5f, 0.5f, -0.5f, u0, topUV.vMax  // 35
+        -0.5f, 0.5f, -0.5f, topUV.uMin, topUV.vMax, // 30
+        0.5f, 0.5f, -0.5f, topUV.uMax, topUV.vMax,  // 31
+        0.5f, 0.5f, 0.5f, topUV.uMax, topUV.vMin,   // 32
+        0.5f, 0.5f, 0.5f, topUV.uMax, topUV.vMin,   // 33
+        -0.5f, 0.5f, 0.5f, topUV.uMin, topUV.vMin,  // 34
+        -0.5f, 0.5f, -0.5f, topUV.uMin, topUV.vMax  // 35
     };
 
     // world space positions of our cubes
@@ -349,7 +354,7 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
         mat4 model = mat4(1.0f);
         model = translate(model, cubePositions[i]);
         float angle = i == 0 ? 10.0f : 20.0f * i;
-        model = rotate(model, (float)SDL_GetTicks() / 1000.f * radians(angle), vec3(1.0f, 0.3f, 0.5f));
+        model = rotate(model, (float)SDL_GetTicks() / 1000.f * radians(angle), vec3(1.0f, 0.3f, 0.5f)); // ucuncu parametre hanig eksen etrafinda donecegini belirler.
 
         int modelLoc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));

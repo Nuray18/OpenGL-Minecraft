@@ -12,6 +12,8 @@
 
 struct UVRange
 {
+    float uMin;
+    float uMax;
     float vMin;
     float vMax;
 };
@@ -36,7 +38,7 @@ private:
     void render(float deltaTime);
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
-    UVRange GetUVRange(int totalRows, int rowIndex);
+    UVRange GetUVRange(int rowSize, int colSize, int targetIndex);
     unsigned int LoadTexture(const char *path);
     void CheckShaderErrors();
     void CheckErrors();
