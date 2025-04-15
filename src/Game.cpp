@@ -1,10 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "headers/stb_image.h"
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
-#include <cmath>
-
-using namespace std;
-using namespace glm;
 
 Game::Game()
 {
@@ -14,6 +10,16 @@ Game::Game()
     screenHeight = 600;
 
     player = new Player(100, 100, 50, 60);
+
+    deltaTime = 0.0f;
+    lastFrame = SDL_GetTicks();
+
+    lastX = screenWidth / 2;
+    lastY = screenHeight / 2;
+    firstMouse = true;
+    fov = 45.0f;
+    yaw = -90.0f; // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+    pitch = 0.0f;
 }
 
 Game::~Game()
@@ -55,7 +61,7 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
         std::cerr << "Failed to initialize GLAD!" << std::endl;
         exit(-1);
     }
-
+    SDL_SetRelativeMouseMode(SDL_TRUE);
     setupOpenGL();
 }
 
@@ -97,7 +103,7 @@ GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
     return shaderProgram;
 }
 
-UVRange Game::GetUVRange(int rowSize, int colSize, int targetIndex)
+UVRange Game::getUVRange(int rowSize, int colSize, int targetIndex)
 // in my texture atlas height is 48, width is 16. now totalRows means how many texture block we have in texture atlas, and rowIndex means witch block we want to have with the index number of it.
 {
     int currRow = targetIndex / colSize;
@@ -111,7 +117,7 @@ UVRange Game::GetUVRange(int rowSize, int colSize, int targetIndex)
     return {uMin, uMax, vMin, vMax};
 }
 
-void Game::CheckShaderErrors()
+void Game::checkShaderErrors()
 {
     GLint success;
     GLchar infoLog[512];
@@ -130,7 +136,7 @@ void Game::CheckShaderErrors()
     }
 }
 
-void Game::CheckErrors()
+void Game::checkErrors()
 {
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
@@ -139,7 +145,7 @@ void Game::CheckErrors()
     }
 }
 
-unsigned int Game::LoadTexture(const char *path)
+unsigned int Game::loadTexture(const char *path)
 {
     stbi_set_flip_vertically_on_load(true);
 
@@ -182,18 +188,47 @@ unsigned int Game::LoadTexture(const char *path)
     return tempTexture;
 }
 
+void Game::mouseCallback(SDL_Window *window, double xRel, double yRel)
+{
+    float sensitivity = 0.1f;
+    float xOffset = xRel * sensitivity;
+    float yOffset = yRel * sensitivity;
+
+    yaw += xOffset;
+    pitch += yOffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
+}
+
+void Game::scrollCallback(SDL_Window *window, double xOffset, double yOffset)
+{
+    fov -= (float)yOffset;
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 45.0f)
+        fov = 45.0f;
+}
+
 void Game::setupOpenGL()
 {
     glViewport(0, 0, screenWidth, screenHeight);
-
     // Üçgenin köşe verileri (x, y, z)
     // Vertex ve UV koordinatları (u, v)
     float u0 = 0.0f;
     float u1 = 1.0f;
 
-    UVRange topUV = GetUVRange(3, 1, 2); // Top view
-    UVRange MidUV = GetUVRange(3, 1, 1); // Side view
-    UVRange BotUV = GetUVRange(3, 1, 0); // Bottom view
+    UVRange topUV = getUVRange(3, 1, 2); // Top view
+    UVRange MidUV = getUVRange(3, 1, 1); // Side view
+    UVRange BotUV = getUVRange(3, 1, 0); // Bottom view
 
     float vertices[] = {
         // FRONT (Side view)
@@ -246,24 +281,29 @@ void Game::setupOpenGL()
     };
 
     // world space positions of our cubes
-    cubePositions[0] = vec3(0.0f, 0.0f, 0.0f);
+    cubePositions[0] = vec3(0.0f, 0.0f, 0.0f); // 1
     cubePositions[1] = vec3(2.0f, 5.0f, -15.0f);
-    cubePositions[2] = vec3(-1.5f, -2.2f, -2.5f);
+    cubePositions[2] = vec3(-1.5f, -2.2f, -2.5f); // 3
     cubePositions[3] = vec3(-3.8f, -2.0f, -12.3f);
     cubePositions[4] = vec3(2.4f, -0.4f, -3.5f);
-    cubePositions[5] = vec3(-1.7f, 3.0f, -7.5f);
+    cubePositions[5] = vec3(-1.7f, 3.0f, -7.5f); // 6
     cubePositions[6] = vec3(1.3f, -2.0f, -2.5f);
     cubePositions[7] = vec3(1.5f, 2.0f, -2.5f);
-    cubePositions[8] = vec3(1.5f, 0.2f, -1.5f);
+    cubePositions[8] = vec3(1.5f, 0.2f, -1.5f); // 9
     cubePositions[9] = vec3(-1.3f, 1.0f, -1.5f);
+
+    // define camera
+    cameraPos = vec3(0.0, 0.0, 3.0);
+    cameraFront = vec3(0.0, 0.0, -1.0);
+    cameraUp = vec3(0.0, 1.0, 0.0);
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
     // error checks
-    CheckShaderErrors();
-    CheckErrors();
+    checkShaderErrors();
+    checkErrors();
 
-    texture1 = LoadTexture("images/GrassBlock.png"); // birinci texture
+    texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -296,9 +336,12 @@ void Game::gameLoop()
 
     while (gameState != GameState::EXIT) // bu dogru oldugu surece kod calisir.
     {
-        Uint32 currentTime = SDL_GetTicks();
-        float deltaTime = (currentTime - lastTime) / 1000.0f; // DeltaTime hesapla (saniye cinsinden)
-        lastTime = currentTime;                               // Son zamanı güncelle
+        Uint64 currentTime = SDL_GetPerformanceCounter();
+        deltaTime = (currentTime - lastFrame) / (float)SDL_GetPerformanceFrequency();
+        lastFrame = currentTime; // Son zamanı güncelle
+
+        if (deltaTime == 0.0f) // güvenlik için
+            deltaTime = 0.0001f;
 
         while (SDL_PollEvent(&event))
         {
@@ -307,21 +350,50 @@ void Game::gameLoop()
         }
 
         // player->update(deltaTime);
-        render(deltaTime); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
+        render(); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
     }
 }
 
 void Game::handleEvents(SDL_Event &event)
 {
+    cameraSpeed = 50.0f * deltaTime;
+
     switch (event.type)
     {
-    case SDL_QUIT: // Oyunu kapatma
+    case SDL_QUIT:
         gameState = GameState::EXIT;
+        break;
+
+    case SDL_KEYDOWN:
+        switch (event.key.keysym.sym)
+        {
+        case SDLK_w:
+            cameraPos += cameraSpeed * cameraFront;
+            break;
+        case SDLK_s:
+            cameraPos -= cameraSpeed * cameraFront;
+            break;
+        case SDLK_a:
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            break;
+        case SDLK_d:
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            break;
+        }
+        break;
+
+    case SDL_MOUSEMOTION:
+        // Relative mouse movement kullanılıyor
+        mouseCallback(window, event.motion.xrel, -event.motion.yrel); // Y yönü ters çevrildi
+        break;
+
+    case SDL_MOUSEWHEEL:
+        scrollCallback(window, 0.0, event.wheel.y);
         break;
     }
 }
 
-void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirmek icin lazim parametre
+void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim parametre
 {
     glClearColor(0.75f, 0.75f, 0.75f, 1.0f);            // renk ata arka plana
     glEnable(GL_DEPTH_TEST);                            // enables the depth so we can draw each sides in the true way
@@ -333,11 +405,12 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
-    mat4 view = mat4(1.0f); // camera
-    view = translate(view, vec3(0.0f, 0.0f, -3.0f));
+    mat4 view = mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    //            camera posizyonu  camera nereye bakiyor camera icin yukari yon neresi
 
     mat4 projection = mat4(1.0f); // perspective look
-    projection = perspective(radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+    projection = perspective(radians(fov), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
     // retrieve the matrix uniform locations
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -354,7 +427,7 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
         mat4 model = mat4(1.0f);
         model = translate(model, cubePositions[i]);
         float angle = i == 0 ? 10.0f : 20.0f * i;
-        model = rotate(model, (float)SDL_GetTicks() / 1000.f * radians(angle), vec3(1.0f, 0.3f, 0.5f)); // ucuncu parametre hanig eksen etrafinda donecegini belirler.
+        model = rotate(model, radians(angle), vec3(1.0f, 0.3f, 0.5f)); // ucuncu parametre hanig eksen etrafinda donecegini belirler.
 
         int modelLoc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
@@ -363,5 +436,7 @@ void Game::render(float deltaTime) // textureler arasinda alfa degeri degistirme
     }
 
     SDL_GL_SwapWindow(window);
+
+    std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
 }
 // every thing we need to create a 3D cube is Projection, view, model.

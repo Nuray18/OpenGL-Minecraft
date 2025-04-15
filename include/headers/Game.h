@@ -3,12 +3,18 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+
 #include <glad/glad.h>
+#include <sdl/SDL.h>
+
 #include <iostream>
 #include <vector>
-#include <sdl/SDL.h>
 #include <fstream>
 #include <sstream>
+#include <cmath>
+
+using namespace std;
+using namespace glm;
 
 struct UVRange
 {
@@ -35,13 +41,15 @@ private:
     void init(const char *title, int x, int y, int w, int h, Uint32 flags);
     void handleEvents(SDL_Event &event);
     void gameLoop();
-    void render(float deltaTime);
+    void render();
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
-    UVRange GetUVRange(int rowSize, int colSize, int targetIndex);
-    unsigned int LoadTexture(const char *path);
-    void CheckShaderErrors();
-    void CheckErrors();
+    UVRange getUVRange(int rowSize, int colSize, int targetIndex);
+    unsigned int loadTexture(const char *path);
+    void checkShaderErrors();
+    void checkErrors();
+    void mouseCallback(SDL_Window *window, double xRel, double yRel); // Rel means Relative mostly used in fps games.
+    void scrollCallback(SDL_Window *window, double xOffset, double yOffset);
 
     bool running() { return isRunning; }
 
@@ -69,4 +77,20 @@ private:
     unsigned int EBO;
     unsigned int VAO; // vertex array object
     unsigned int VBO; // vertex buffer object
+
+    // define camera
+    glm::vec3 cameraPos;
+    glm::vec3 cameraFront;
+    glm::vec3 cameraUp;
+    float cameraSpeed;
+    // To move camera with same fp in each comp
+    float deltaTime; // time between current frame and last frame
+    float lastFrame;
+    // To move camera freely in the world.
+    float lastX;
+    float lastY;
+    bool firstMouse;
+    GLfloat fov;
+    float yaw;
+    float pitch;
 };
