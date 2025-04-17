@@ -1,5 +1,7 @@
 #pragma once
 #include "headers/Player.h"
+#include "headers/Camera.h" // bu yazim kendi yazdigim kodlar icin
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -48,8 +50,9 @@ private:
     unsigned int loadTexture(const char *path);
     void checkShaderErrors();
     void checkErrors();
-    void mouseCallback(SDL_Window *window, double xRel, double yRel); // Rel means Relative mostly used in fps games.
-    void scrollCallback(SDL_Window *window, double xOffset, double yOffset);
+    void mouseCallback(float xPos, float yPos);
+    void scrollCallback(float yOffset);
+    void processInput();
 
     bool running() { return isRunning; }
 
@@ -78,19 +81,9 @@ private:
     unsigned int VAO; // vertex array object
     unsigned int VBO; // vertex buffer object
 
-    // define camera
-    glm::vec3 cameraPos;
-    glm::vec3 cameraFront;
-    glm::vec3 cameraUp;
-    float cameraSpeed;
     // To move camera with same fp in each comp
     float deltaTime; // time between current frame and last frame
     float lastFrame;
-    // To move camera freely in the world.
-    float lastX;
-    float lastY;
-    bool firstMouse;
-    GLfloat fov;
-    float yaw;
-    float pitch;
+
+    Camera camera;
 };

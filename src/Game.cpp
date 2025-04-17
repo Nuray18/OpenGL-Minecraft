@@ -14,12 +14,7 @@ Game::Game()
     deltaTime = 0.0f;
     lastFrame = SDL_GetTicks();
 
-    lastX = screenWidth / 2;
-    lastY = screenHeight / 2;
-    firstMouse = true;
-    fov = 45.0f;
-    yaw = -90.0f; // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-    pitch = 0.0f;
+    camera = vec3(0.0f, 0.0f, 3.0f);
 }
 
 Game::~Game()
@@ -61,6 +56,8 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
         std::cerr << "Failed to initialize GLAD!" << std::endl;
         exit(-1);
     }
+    // SDL_GL_SetSwapInterval(1); // VSync aç not good in FPS
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     setupOpenGL();
 }
@@ -188,36 +185,6 @@ unsigned int Game::loadTexture(const char *path)
     return tempTexture;
 }
 
-void Game::mouseCallback(SDL_Window *window, double xRel, double yRel)
-{
-    float sensitivity = 0.1f;
-    float xOffset = xRel * sensitivity;
-    float yOffset = yRel * sensitivity;
-
-    yaw += xOffset;
-    pitch += yOffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(direction);
-}
-
-void Game::scrollCallback(SDL_Window *window, double xOffset, double yOffset)
-{
-    fov -= (float)yOffset;
-    if (fov < 1.0f)
-        fov = 1.0f;
-    if (fov > 45.0f)
-        fov = 45.0f;
-}
-
 void Game::setupOpenGL()
 {
     glViewport(0, 0, screenWidth, screenHeight);
@@ -292,11 +259,6 @@ void Game::setupOpenGL()
     cubePositions[8] = vec3(1.5f, 0.2f, -1.5f); // 9
     cubePositions[9] = vec3(-1.3f, 1.0f, -1.5f);
 
-    // define camera
-    cameraPos = vec3(0.0, 0.0, 3.0);
-    cameraFront = vec3(0.0, 0.0, -1.0);
-    cameraUp = vec3(0.0, 1.0, 0.0);
-
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
     // error checks
@@ -329,6 +291,30 @@ void Game::setupOpenGL()
     glBindVertexArray(0);
 }
 
+void Game::mouseCallback(float xPos, float yPos)
+{
+    camera.processMouseMovement(xPos, yPos);
+}
+
+void Game::scrollCallback(float yOffset)
+{
+    camera.processMouseScroll(yOffset);
+}
+
+void Game::processInput() // with this func we comunicate with game throuh inputs(keys)
+{
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+    if (state[SDL_SCANCODE_W])
+        camera.processKeyboard(FORWARD, deltaTime);
+    if (state[SDL_SCANCODE_S])
+        camera.processKeyboard(BACKWARD, deltaTime);
+    if (state[SDL_SCANCODE_A])
+        camera.processKeyboard(LEFT, deltaTime);
+    if (state[SDL_SCANCODE_D])
+        camera.processKeyboard(RIGHT, deltaTime);
+}
+
 void Game::gameLoop()
 {
     SDL_Event event;
@@ -340,24 +326,22 @@ void Game::gameLoop()
         deltaTime = (currentTime - lastFrame) / (float)SDL_GetPerformanceFrequency();
         lastFrame = currentTime; // Son zamanı güncelle
 
+        deltaTime = glm::clamp(deltaTime, 0.0f, 0.1f); // max 0.1 saniye (10 FPS)
+
         if (deltaTime == 0.0f) // güvenlik için
             deltaTime = 0.0001f;
 
         while (SDL_PollEvent(&event))
         {
             handleEvents(event); // Olayları işleme.
-            // player->handleInput(event); // oyuncu girislerini isle
         }
-
-        // player->update(deltaTime);
-        render(); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
+        processInput(); // for moving with WASD keys
+        render();       // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
     }
 }
 
 void Game::handleEvents(SDL_Event &event)
 {
-    cameraSpeed = 50.0f * deltaTime;
-
     switch (event.type)
     {
     case SDL_QUIT:
@@ -365,30 +349,30 @@ void Game::handleEvents(SDL_Event &event)
         break;
 
     case SDL_KEYDOWN:
+        // Buttons goes for in this section
         switch (event.key.keysym.sym)
         {
-        case SDLK_w:
-            cameraPos += cameraSpeed * cameraFront;
-            break;
-        case SDLK_s:
-            cameraPos -= cameraSpeed * cameraFront;
-            break;
-        case SDLK_a:
-            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-            break;
-        case SDLK_d:
-            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        case SDLK_ESCAPE:
+            SDL_SetRelativeMouseMode(SDL_FALSE); // Mouse'u serbest bırak
+            SDL_ShowCursor(SDL_ENABLE);          // İmleci göster
             break;
         }
         break;
 
+    case SDL_MOUSEBUTTONDOWN:
+        SDL_SetRelativeMouseMode(SDL_TRUE); // Mouse'u tekrar kilitle
+        SDL_ShowCursor(SDL_DISABLE);        // İmleci gizle
+        break;
+
     case SDL_MOUSEMOTION:
-        // Relative mouse movement kullanılıyor
-        mouseCallback(window, event.motion.xrel, -event.motion.yrel); // Y yönü ters çevrildi
+        mouseCallback(event.motion.xrel, -event.motion.yrel);
         break;
 
     case SDL_MOUSEWHEEL:
-        scrollCallback(window, 0.0, event.wheel.y);
+        scrollCallback(event.wheel.y);
+        break;
+
+    default:
         break;
     }
 }
@@ -405,12 +389,10 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
-    mat4 view = mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    //            camera posizyonu  camera nereye bakiyor camera icin yukari yon neresi
+    mat4 view = camera.getViewMatrix();
 
     mat4 projection = mat4(1.0f); // perspective look
-    projection = perspective(radians(fov), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+    projection = perspective(radians(camera.zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
     // retrieve the matrix uniform locations
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
