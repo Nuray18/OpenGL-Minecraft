@@ -64,8 +64,6 @@ private:
 
     GameState gameState;
 
-    Player *player; // Player classina point eden player pointer
-
     glm::mat4 transform;
     glm::vec3 cubePositions[10];
 

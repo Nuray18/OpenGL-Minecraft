@@ -9,7 +9,7 @@ Game::Game()
     screenWidth = 800;
     screenHeight = 600;
 
-    player = new Player(100, 100, 50, 60);
+    // player = new Player(100, 100, 50, 60);
 
     deltaTime = 0.0f;
     lastFrame = SDL_GetTicks();
@@ -19,7 +19,7 @@ Game::Game()
 
 Game::~Game()
 {
-    delete player;
+    // delete player;
 
     SDL_GL_DeleteContext(glContext);
 
@@ -293,11 +293,13 @@ void Game::setupOpenGL()
 
 void Game::mouseCallback(float xPos, float yPos)
 {
+    // player.camera.processMovement();
     camera.processMouseMovement(xPos, yPos);
 }
 
 void Game::scrollCallback(float yOffset)
 {
+    // player.camera.processMouseScroll();
     camera.processMouseScroll(yOffset);
 }
 
@@ -306,12 +308,16 @@ void Game::processInput() // with this func we comunicate with game throuh input
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
     if (state[SDL_SCANCODE_W])
+        // player.camera.processKeyboard();
         camera.processKeyboard(FORWARD, deltaTime);
     if (state[SDL_SCANCODE_S])
+        // player.camera.processKeyboard();
         camera.processKeyboard(BACKWARD, deltaTime);
     if (state[SDL_SCANCODE_A])
+        // player.camera.processKeyboard();
         camera.processKeyboard(LEFT, deltaTime);
     if (state[SDL_SCANCODE_D])
+        // player.camera.processKeyboard();
         camera.processKeyboard(RIGHT, deltaTime);
 }
 
@@ -389,6 +395,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
+    // we can write view = player.camera.getViewMAtrix();
     mat4 view = camera.getViewMatrix();
 
     mat4 projection = mat4(1.0f); // perspective look

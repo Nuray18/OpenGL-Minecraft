@@ -26,6 +26,7 @@ public:
 
     Camera(float _posX, float _posY, float _posZ, float _upX, float _upY, float _upZ, float _yaw, float _pitch);
 
+    // getting the view matrix
     mat4 getViewMatrix();
 
     void processKeyboard(CameraMovement direction, float deltaTime);
@@ -38,6 +39,7 @@ public:
     vec3 up;       // Yukarı yönü
     vec3 worldUp;
 
+    // camera settings
     float yaw;
     float pitch;
     float movementSpeed;
@@ -45,5 +47,6 @@ public:
     float zoom;
 
 private:
+    // updating camera so it can move
     void updateCamera();
 };

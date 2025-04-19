@@ -1,31 +1,25 @@
-#include <sdl/SDL.h>
+#pragma once
+#include "headers/Camera.h"
+#include "glm/glm.hpp"
+
+using namespace glm;
 
 class Player
 {
 public:
-    Player(int x, int y, int width, int height);
-    void handleInput(SDL_Event &event); // Oyuncudan gelen girişleri (klavye, fare vs.) işler.
-    void update(float deltaTime);       // Oyuncu hareketini ve diğer durumları günceller. mesela left tarafa 5 adim gittiysek ekranda bu pozisyonuna gider
-    void render(int screenHeight);      // Oyuncuyu ekranda çizer.
+    Player(vec3 startPosition);
+    void update(float deltaTime);
+    void jump();
+    Camera &getCamera();
+
+    vec3 getPosition() const;
 
 private:
-    float x;
-    float y;
-
-    float velocityX;
+    vec3 position;
     float velocityY;
-
-    float width;
-    float height;
-
-    bool jumping;
-    bool walking;
-
-    float walkSpeed;
-    float jumpForce;
-    float maxJumpHeight;
-
     float gravity;
+    float jumpStrength;
+    bool isGrounded;
 
-    void move(float deltaTime); // Hareket fonksiyonu
+    Camera camera;
 };
