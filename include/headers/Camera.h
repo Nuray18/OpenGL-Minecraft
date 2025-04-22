@@ -5,14 +5,6 @@
 
 using namespace glm;
 
-enum CameraMovement
-{
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
-};
-
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
@@ -29,7 +21,7 @@ public:
     // getting the view matrix
     mat4 getViewMatrix();
 
-    void processKeyboard(CameraMovement direction, float deltaTime);
+    void processKeyboard(const vec3 &direction, float deltaTime);
     void processMouseMovement(float xOffset, float yOffset, GLboolean constrainPitch = true);
     void processMouseScroll(float yOffeset);
 

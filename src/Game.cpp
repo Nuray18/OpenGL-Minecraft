@@ -3,18 +3,15 @@
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
 
 Game::Game()
+    : player(vec3(0.0f, 0.0f, 3.0f)), chunk(0, 0)
 {
     window = nullptr;
     gameState = GameState::PLAY;
     screenWidth = 800;
     screenHeight = 600;
 
-    // player = new Player(100, 100, 50, 60);
-
     deltaTime = 0.0f;
     lastFrame = SDL_GetTicks();
-
-    camera = vec3(0.0f, 0.0f, 3.0f);
 }
 
 Game::~Game()
@@ -247,17 +244,10 @@ void Game::setupOpenGL()
         -0.5f, 0.5f, -0.5f, topUV.uMin, topUV.vMax  // 35
     };
 
+    // model de kullanmak icin lazim.
+    vertexSize = sizeof(vertices) / sizeof(float);
+
     // world space positions of our cubes
-    cubePositions[0] = vec3(0.0f, 0.0f, 0.0f); // 1
-    cubePositions[1] = vec3(2.0f, 5.0f, -15.0f);
-    cubePositions[2] = vec3(-1.5f, -2.2f, -2.5f); // 3
-    cubePositions[3] = vec3(-3.8f, -2.0f, -12.3f);
-    cubePositions[4] = vec3(2.4f, -0.4f, -3.5f);
-    cubePositions[5] = vec3(-1.7f, 3.0f, -7.5f); // 6
-    cubePositions[6] = vec3(1.3f, -2.0f, -2.5f);
-    cubePositions[7] = vec3(1.5f, 2.0f, -2.5f);
-    cubePositions[8] = vec3(1.5f, 0.2f, -1.5f); // 9
-    cubePositions[9] = vec3(-1.3f, 1.0f, -1.5f);
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
@@ -267,7 +257,7 @@ void Game::setupOpenGL()
 
     texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
 
-    // enable it
+        // enable it
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -294,31 +284,37 @@ void Game::setupOpenGL()
 void Game::mouseCallback(float xPos, float yPos)
 {
     // player.camera.processMovement();
-    camera.processMouseMovement(xPos, yPos);
+    player.getCamera().processMouseMovement(xPos, yPos);
 }
 
 void Game::scrollCallback(float yOffset)
 {
     // player.camera.processMouseScroll();
-    camera.processMouseScroll(yOffset);
+    player.getCamera().processMouseScroll(yOffset);
 }
 
 void Game::processInput() // with this func we comunicate with game throuh inputs(keys)
 {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
+    vec3 movement(0.0f);
+
+    // Basılı tuşlara göre yön belirle
     if (state[SDL_SCANCODE_W])
-        // player.camera.processKeyboard();
-        camera.processKeyboard(FORWARD, deltaTime);
+        movement.z += player.speed;
     if (state[SDL_SCANCODE_S])
-        // player.camera.processKeyboard();
-        camera.processKeyboard(BACKWARD, deltaTime);
+        movement.z -= player.speed;
     if (state[SDL_SCANCODE_A])
-        // player.camera.processKeyboard();
-        camera.processKeyboard(LEFT, deltaTime);
+        movement.x -= player.speed;
     if (state[SDL_SCANCODE_D])
-        // player.camera.processKeyboard();
-        camera.processKeyboard(RIGHT, deltaTime);
+        movement.x += player.speed;
+
+    // Sadece bir kere çağırıyoruz
+    player.update(movement, deltaTime);
+
+    // Zıplama ayrı tuşla çalışır
+    if (state[SDL_SCANCODE_SPACE])
+        player.jump();
 }
 
 void Game::gameLoop()
@@ -342,7 +338,8 @@ void Game::gameLoop()
             handleEvents(event); // Olayları işleme.
         }
         processInput(); // for moving with WASD keys
-        render();       // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
+
+        render(); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
     }
 }
 
@@ -358,6 +355,10 @@ void Game::handleEvents(SDL_Event &event)
         // Buttons goes for in this section
         switch (event.key.keysym.sym)
         {
+        case SDLK_SPACE:
+            player.jump();
+            break;
+
         case SDLK_ESCAPE:
             SDL_SetRelativeMouseMode(SDL_FALSE); // Mouse'u serbest bırak
             SDL_ShowCursor(SDL_ENABLE);          // İmleci göster
@@ -385,7 +386,7 @@ void Game::handleEvents(SDL_Event &event)
 
 void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim parametre
 {
-    glClearColor(0.75f, 0.75f, 0.75f, 1.0f);            // renk ata arka plana
+    glClearColor(0.529f, 0.808f, 0.922f, 1.0f);
     glEnable(GL_DEPTH_TEST);                            // enables the depth so we can draw each sides in the true way
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame
 
@@ -396,10 +397,10 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glBindTexture(GL_TEXTURE_2D, texture1);
 
     // we can write view = player.camera.getViewMAtrix();
-    mat4 view = camera.getViewMatrix();
+    mat4 view = player.getCamera().getViewMatrix();
 
     mat4 projection = mat4(1.0f); // perspective look
-    projection = perspective(radians(camera.zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+    projection = perspective(radians(player.getCamera().zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
     // retrieve the matrix uniform locations
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -409,20 +410,8 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
 
     glBindVertexArray(VAO);
-
-    for (unsigned int i = 0; i < 10; i++)
-    {
-        // calculate the model matrix for each object and pass it to shader before drawing
-        mat4 model = mat4(1.0f);
-        model = translate(model, cubePositions[i]);
-        float angle = i == 0 ? 10.0f : 20.0f * i;
-        model = rotate(model, radians(angle), vec3(1.0f, 0.3f, 0.5f)); // ucuncu parametre hanig eksen etrafinda donecegini belirler.
-
-        int modelLoc = glGetUniformLocation(shaderProgram, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
-
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
+    // chunk sistemi ile calisma
+    chunk.Render(shaderProgram, vertexSize);
 
     SDL_GL_SwapWindow(window);
 

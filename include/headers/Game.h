@@ -1,6 +1,6 @@
 #pragma once
 #include "headers/Player.h"
-#include "headers/Camera.h" // bu yazim kendi yazdigim kodlar icin
+#include "headers/Chunk.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -56,6 +56,8 @@ private:
 
     bool running() { return isRunning; }
 
+    GLsizei vertexSize;
+
     SDL_Window *window;
     SDL_GLContext glContext;
 
@@ -83,5 +85,7 @@ private:
     float deltaTime; // time between current frame and last frame
     float lastFrame;
 
-    Camera camera;
+    Player player;
+
+    Chunk chunk;
 };

@@ -35,22 +35,16 @@ mat4 Camera::getViewMatrix()
     return lookAt(position, position + front, up);
 }
 
-void Camera::processKeyboard(CameraMovement direction, float deltaTime)
+void Camera::processKeyboard(const vec3 &direction, float deltaTime)
 {
     float velocity = movementSpeed * deltaTime;
 
-    // with this camera will not be able to move in Y direction.
-    vec3 flatFront = normalize(vec3(front.x, 0.0f, front.z));
-    vec3 flatRight = normalize(vec3(right.x, 0.0f, right.z));
+    // Kameranın sağ ve ileri yönünü hesapla
+    vec3 forwardDir = normalize(vec3(front.x, 0.0f, front.z)); // yukari gidemez biz w tusuna bastigimizda
+    vec3 rightDir = normalize(cross(forwardDir, up));
 
-    if (direction == FORWARD)
-        position += flatFront * velocity;
-    if (direction == BACKWARD)
-        position -= flatFront * velocity;
-    if (direction == LEFT)
-        position -= flatRight * velocity;
-    if (direction == RIGHT)
-        position += flatRight * velocity;
+    position += forwardDir * direction.z * velocity;
+    position += rightDir * direction.x * velocity;
 }
 
 void Camera::processMouseMovement(float xOffset, float yOffset, GLboolean constrainPitch)
