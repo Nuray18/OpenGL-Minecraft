@@ -40,7 +40,7 @@ void Camera::processKeyboard(const vec3 &direction, float deltaTime)
     float velocity = movementSpeed * deltaTime;
 
     // Kameranın sağ ve ileri yönünü hesapla
-    vec3 forwardDir = normalize(vec3(front.x, 0.0f, front.z)); // yukari gidemez biz w tusuna bastigimizda
+    vec3 forwardDir = normalize(vec3(front.x, front.y, front.z)); // yukari gidemez biz w tusuna bastigimizda
     vec3 rightDir = normalize(cross(forwardDir, up));
 
     position += forwardDir * direction.z * velocity;

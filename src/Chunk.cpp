@@ -29,6 +29,7 @@ void Chunk::Generate()
 }
 
 void Chunk::GenerateTerrain()
+// burda biz have ile diger bloxklar arasinda ayrim yapiyoruz
 {
     // Örnek: basit düz dünya
     for (int x = 0; x < CHUNK_WIDTH; ++x)
@@ -53,12 +54,23 @@ void Chunk::Update()
 
 void Chunk::Render(unsigned int shaderProgram, int vertexSize)
 {
-    mat4 model = glm::translate(mat4(1.0f), vec3(chunkX * CHUNK_WIDTH, 0, chunkZ * CHUNK_DEPTH));
-
     int modelLoc = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
 
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertexSize / 3));
+    for (int x = 0; x < CHUNK_WIDTH; ++x)
+    {
+        for (int y = 0; y < CHUNK_HEIGHT; ++y)
+        {
+            for (int z = 0; z < CHUNK_DEPTH; ++z)
+            {
+                if (blocks[x][y][z] != 0) // boş değilse
+                {
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(chunkX * CHUNK_WIDTH + x, y, chunkZ * CHUNK_DEPTH + z));
+                    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertexSize / 3));
+                }
+            }
+        }
+    }
 }
 
 int Chunk::GetBlock(int x, int y, int z) const

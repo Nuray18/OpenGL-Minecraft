@@ -3,7 +3,7 @@
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
 
 Game::Game()
-    : player(vec3(0.0f, 0.0f, 3.0f)), chunk(0, 0)
+    : player(vec3(-15.0f, 0.0f, 10.0f)), chunk(0, 0)
 {
     window = nullptr;
     gameState = GameState::PLAY;
@@ -257,7 +257,7 @@ void Game::setupOpenGL()
 
     texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
 
-        // enable it
+    // enable it
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -355,6 +355,9 @@ void Game::handleEvents(SDL_Event &event)
         // Buttons goes for in this section
         switch (event.key.keysym.sym)
         {
+        case SDLK_f:
+            player.toggleFlightMode();
+            break;
         case SDLK_SPACE:
             player.jump();
             break;
@@ -412,9 +415,10 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glBindVertexArray(VAO);
     // chunk sistemi ile calisma
     chunk.Render(shaderProgram, vertexSize);
+    player.getPlayerPos();
 
     SDL_GL_SwapWindow(window);
 
-    std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
+    // std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
 }
 // every thing we need to create a 3D cube is Projection, view, model.

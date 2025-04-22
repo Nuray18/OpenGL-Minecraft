@@ -9,6 +9,7 @@ Player::Player(vec3 startPosition)
     jumpStrength = 5.0f;
     isGrounded = true;
     camera = startPosition;
+    flightMode = false; // ✨ default olarak normal mod
 }
 
 void Player::jump()
@@ -29,23 +30,31 @@ void Player::update(vec3 movementDirection, float deltaTime)
         camera.processKeyboard(moveDir, deltaTime);
     }
 
-    // 2️⃣ X-Z pozisyonlarını kameradan al
-    position.x = camera.position.x;
-    position.z = camera.position.z;
-
-    // 3️⃣ Yerçekimi işle
-    velocityY += gravity * deltaTime;
-    position.y += velocityY * deltaTime;
-
-    if (position.y <= 0.0f)
+    if (!flightMode)
     {
-        position.y = 0.0f;
-        velocityY = 0.0f;
-        isGrounded = true;
+        // First Person mod: gravity uygulanır
+        velocityY += gravity * deltaTime;
+        position.y += velocityY * deltaTime;
+
+        if (position.y <= 0.0f)
+        {
+            position.y = 0.0f;
+            velocityY = 0.0f;
+            isGrounded = true;
+        }
+
+        // Kamera Y pozisyonunu oyuncunun başına göre ayarla
+        camera.position.y = position.y + height;
+    }
+    else
+    {
+        // Free Fly mod: yerçekimi yok, kamera pozisyonu direkt alınır
+        position = camera.position;
     }
 
-    // 4️⃣ Kamera Y pozisyonunu oyuncuya göre ayarla
-    camera.position.y = position.y + height;
+    // X-Z pozisyonlarını kameradan al
+    position.x = camera.position.x;
+    position.z = camera.position.z;
 }
 
 Camera &Player::getCamera()
@@ -56,4 +65,22 @@ Camera &Player::getCamera()
 vec3 Player::getPosition() const
 {
     return position;
+}
+
+void Player::toggleFlightMode()
+{
+    flightMode = !flightMode;
+    if (flightMode)
+    {
+        // Uçuş moduna geçtiğinde vertical velocity sıfırlanır
+        velocityY = 0.0f;
+    }
+}
+
+void Player::getPlayerPos()
+{
+    float x = position.x;
+    float y = position.y;
+    float z = position.z;
+    cout << x << " " << y << " " << z << endl;
 }

@@ -1,8 +1,10 @@
 #pragma once
 #include "headers/Camera.h"
 #include "glm/glm.hpp"
+#include <iostream>
 
 using namespace glm;
+using namespace std;
 
 class Player
 {
@@ -12,8 +14,10 @@ public:
     void update(vec3 movementDirection, float deltaTime);
     void jump();
     Camera &getCamera();
+    void toggleFlightMode();
 
     vec3 getPosition() const;
+    void getPlayerPos();
 
     float speed = 1.0f;
 
@@ -23,6 +27,8 @@ private:
     float gravity;
     float jumpStrength;
     bool isGrounded;
+
+    bool flightMode;
 
     float height; // player boyu.
 
