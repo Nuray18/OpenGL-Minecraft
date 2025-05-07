@@ -3,7 +3,7 @@
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
 
 Game::Game()
-    : player(vec3(-15.0f, 0.0f, 10.0f)), chunk(0, 0)
+    : player(vec3(-66.0f, 0.0f, 10.0f))
 {
     window = nullptr;
     gameState = GameState::PLAY;
@@ -12,6 +12,8 @@ Game::Game()
 
     deltaTime = 0.0f;
     lastFrame = SDL_GetTicks();
+
+    world.generateWorld(2); // once generate et yani baslat
 }
 
 Game::~Game()
@@ -413,8 +415,9 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
 
     glBindVertexArray(VAO);
-    // chunk sistemi ile calisma
-    chunk.Render(shaderProgram, vertexSize);
+
+    // world->chunks systemi ile calisma
+    world.render(shaderProgram, vertexSize); // generate edilen dunyayi ekranda render et.
     player.getPlayerPos();
 
     SDL_GL_SwapWindow(window);

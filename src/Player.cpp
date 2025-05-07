@@ -27,7 +27,7 @@ void Player::update(vec3 movementDirection, float deltaTime)
     if (length(movementDirection) > 0.0f)
     {
         vec3 moveDir = normalize(movementDirection);
-        camera.processKeyboard(moveDir, deltaTime);
+        camera.processKeyboard(moveDir, deltaTime * speed);
     }
 
     if (!flightMode)

@@ -3,7 +3,6 @@
 Camera::Camera(vec3 _position, vec3 _up, float _yaw, float _pitch)
 {
     front = vec3(0.0f, 0.0f, -1.0f);
-    movementSpeed = SPEED;
     mouseSensitivity = SENSITIVITY;
     zoom = ZOOM;
 
@@ -18,7 +17,6 @@ Camera::Camera(vec3 _position, vec3 _up, float _yaw, float _pitch)
 Camera::Camera(float _posX, float _posY, float _posZ, float _upX, float _upY, float _upZ, float _yaw, float _pitch)
 {
     front = vec3(0.0f, 0.0f, -1.0f);
-    movementSpeed = SPEED;
     mouseSensitivity = SENSITIVITY;
     zoom = ZOOM;
 
@@ -37,7 +35,7 @@ mat4 Camera::getViewMatrix()
 
 void Camera::processKeyboard(const vec3 &direction, float deltaTime)
 {
-    float velocity = movementSpeed * deltaTime;
+    float velocity = deltaTime;
 
     // Kameranın sağ ve ileri yönünü hesapla
     vec3 forwardDir = normalize(vec3(front.x, front.y, front.z)); // yukari gidemez biz w tusuna bastigimizda

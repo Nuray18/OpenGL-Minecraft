@@ -1,6 +1,6 @@
 #pragma once
 #include "headers/Player.h"
-#include "headers/Chunk.h"
+#include "headers/World.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -87,5 +87,5 @@ private:
 
     Player player;
 
-    Chunk chunk;
+    World world;
 };

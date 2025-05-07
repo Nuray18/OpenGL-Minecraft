@@ -19,7 +19,7 @@ public:
     vec3 getPosition() const;
     void getPlayerPos();
 
-    float speed = 1.0f;
+    float speed = 10.0f;
 
 private:
     vec3 position;

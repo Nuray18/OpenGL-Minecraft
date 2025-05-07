@@ -14,7 +14,7 @@ using namespace std;
 Chunk::Chunk(int chunkX, int chunkZ)
     : chunkX(chunkX), chunkZ(chunkZ)
 {
-    Generate();
+    generate();
     cout << "Bu func calisti" << endl;
 }
 
@@ -23,22 +23,28 @@ Chunk::~Chunk()
     // Kaynak temizleme işlemleri gerekirse buraya
 }
 
-void Chunk::Generate()
+void Chunk::generate()
 {
-    GenerateTerrain();
+    generateTerrain();
 }
 
-void Chunk::GenerateTerrain()
-// burda biz have ile diger bloxklar arasinda ayrim yapiyoruz
+void Chunk::generateTerrain()
+// burda biz hava ile diger bloklar arasinda ayrim yapiyoruz
 {
     // Örnek: basit düz dünya
     for (int x = 0; x < CHUNK_WIDTH; ++x)
     {
         for (int z = 0; z < CHUNK_DEPTH; ++z)
         {
+
+            int worldX = chunkX * CHUNK_WIDTH + x;
+            int worldZ = chunkZ * CHUNK_DEPTH + z;
+
+            int height = randNoice(4, 25); // 4 ile 13 arasi bir deger.
+
             for (int y = 0; y < CHUNK_HEIGHT; ++y)
             {
-                if (y < 64)
+                if (y <= height)
                     blocks[x][y][z] = 1; // Toprak/taş gibi bir şey
                 else
                     blocks[x][y][z] = 0; // Hava
@@ -47,12 +53,12 @@ void Chunk::GenerateTerrain()
     }
 }
 
-void Chunk::Update()
+void Chunk::update()
 {
     // Chunk içeriğini güncelle (örneğin mesh oluşturma)
 }
 
-void Chunk::Render(unsigned int shaderProgram, int vertexSize)
+void Chunk::render(unsigned int shaderProgram, int vertexSize)
 {
     int modelLoc = glGetUniformLocation(shaderProgram, "model");
 
@@ -73,21 +79,26 @@ void Chunk::Render(unsigned int shaderProgram, int vertexSize)
     }
 }
 
-int Chunk::GetBlock(int x, int y, int z) const
+int Chunk::getBlock(int x, int y, int z) const
 {
     if (x < 0 || x >= CHUNK_WIDTH || y < 0 || y >= CHUNK_HEIGHT || z < 0 || z >= CHUNK_DEPTH)
         return -1;
     return blocks[x][y][z];
 }
 
-void Chunk::SetBlock(int x, int y, int z, int blockID)
+void Chunk::setBlock(int x, int y, int z, int blockID)
 {
     if (x < 0 || x >= CHUNK_WIDTH || y < 0 || y >= CHUNK_HEIGHT || z < 0 || z >= CHUNK_DEPTH)
         return;
     blocks[x][y][z] = blockID;
 }
 
-glm::ivec2 Chunk::GetChunkPosition() const
+glm::ivec2 Chunk::getChunkPosition() const
 {
     return glm::ivec2(chunkX, chunkZ);
+}
+
+int Chunk::randNoice(int min, int max)
+{
+    return min + rand() % (max - min + 1);
 }
