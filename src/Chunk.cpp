@@ -40,7 +40,7 @@ void Chunk::generateTerrain()
             int worldX = chunkX * CHUNK_WIDTH + x;
             int worldZ = chunkZ * CHUNK_DEPTH + z;
 
-            int height = randNoice(4, 25); // 4 ile 13 arasi bir deger.
+            int height = (sin(worldX * 0.01) + cos(worldZ * 0.1)) * 4 + 8; // 4 ile 13 arasi bir deger.
 
             for (int y = 0; y < CHUNK_HEIGHT; ++y)
             {
