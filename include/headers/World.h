@@ -9,9 +9,11 @@ class World
 public:
     World();
     ~World();
-    void generateWorld(int radius);
-    void render(unsigned int shaderProgram, int vertexSize);
-    void update();
+    void generateWorld(vec3 playerPosition);
+    void render(unsigned int shaderProgram, int vertexSize, vec3 playerPosition);
+    void update(vec3 playerPosition);
+    bool isChuckLoaded(int chunkX, int chunkY);
+    void destroyChunk(vec3 playerPosition);
 
 private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z

@@ -12,8 +12,6 @@ Game::Game()
 
     deltaTime = 0.0f;
     lastFrame = SDL_GetTicks();
-
-    world.generateWorld(2); // once generate et yani baslat
 }
 
 Game::~Game()
@@ -416,8 +414,10 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
 
     glBindVertexArray(VAO);
 
+    vec3 playerPosition = player.getPosition();
     // world->chunks systemi ile calisma
-    world.render(shaderProgram, vertexSize); // generate edilen dunyayi ekranda render et.
+    world.update(playerPosition);                            // dunyayi generate eder.
+    world.render(shaderProgram, vertexSize, playerPosition); // generate edilen dunyayi ekranda render et.
     player.getPlayerPos();
 
     SDL_GL_SwapWindow(window);

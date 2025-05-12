@@ -1,15 +1,13 @@
+#pragma once
 #include <vector>
 #include <glm/glm.hpp>
+#include "headers/Config.h"
 
 using namespace glm;
 
 class Chunk
 {
 public:
-    static const int CHUNK_WIDTH = 32;
-    static const int CHUNK_HEIGHT = 32;
-    static const int CHUNK_DEPTH = 32;
-
     int chunkX, chunkZ; // Chunk pozisyonu (dünya koordinatında)
 
     Chunk(int chunkX, int chunkZ);

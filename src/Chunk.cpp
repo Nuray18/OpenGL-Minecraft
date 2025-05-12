@@ -40,6 +40,7 @@ void Chunk::generateTerrain()
             int worldX = chunkX * CHUNK_WIDTH + x;
             int worldZ = chunkZ * CHUNK_DEPTH + z;
 
+            // Noise for the world
             int height = (sin(worldX * 0.01) + cos(worldZ * 0.1)) * 4 + 8; // 4 ile 13 arasi bir deger.
 
             for (int y = 0; y < CHUNK_HEIGHT; ++y)
@@ -68,6 +69,7 @@ void Chunk::render(unsigned int shaderProgram, int vertexSize)
         {
             for (int z = 0; z < CHUNK_DEPTH; ++z)
             {
+                // block'u ciz
                 if (blocks[x][y][z] != 0) // boş değilse
                 {
                     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(chunkX * CHUNK_WIDTH + x, y, chunkZ * CHUNK_DEPTH + z));
