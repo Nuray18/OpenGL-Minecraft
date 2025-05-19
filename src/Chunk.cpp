@@ -69,13 +69,40 @@ void Chunk::render(unsigned int shaderProgram, int vertexSize)
         {
             for (int z = 0; z < CHUNK_DEPTH; ++z)
             {
+                if (getBlock(x, y, z) == 0)
+                    continue;
+
+                bool visible = false;
+
+                int worldX = chunkX * CHUNK_WIDTH + x; // herhagi bir locationda hangi chunk olursa olsun sadece bir chunk odakli degil tum chunklar icin odakli sistem
+                int worldZ = chunkZ * CHUNK_DEPTH + z;
+
+                // right face
+                if (getBlock(worldX + 1, y, worldZ) != 0)
+                    visible = true;
+                // left face
+                if (getBlock(worldX - 1, y, worldZ) != 0)
+                    visible = true;
+                // up face
+                if (getBlock(worldX, y + 1, worldZ) != 0)
+                    visible = true;
+                // down face
+                if (getBlock(worldX, y - 1, worldZ) != 0)
+                    visible = true;
+                // front face
+                if (getBlock(worldX, y, worldZ + 1) != 0)
+                    visible = true;
+                // back face
+                if (getBlock(worldX, y, worldZ - 1) != 0)
+                    visible = true;
+
+                if (!visible)
+                    continue;
+
                 // block'u ciz
-                if (blocks[x][y][z] != 0) // boş değilse
-                {
-                    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(chunkX * CHUNK_WIDTH + x, y, chunkZ * CHUNK_DEPTH + z));
-                    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertexSize / 3));
-                }
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(worldX, y, worldZ));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertexSize / 3));
             }
         }
     }

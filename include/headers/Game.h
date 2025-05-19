@@ -6,8 +6,10 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include <glad/glad.h>
-#include <sdl/SDL.h>
+#include "sdl/SDL_ttf.h"
+#include "sdl/SDL.h"
+
+#include "glad/glad.h"
 
 #include <iostream>
 #include <vector>
@@ -56,6 +58,9 @@ private:
 
     bool running() { return isRunning; }
 
+    void drawDebugInfo(int fps, int drawCalls, int vertexCount);
+    GLuint createTextTexture(const std::string &text, SDL_Color color);
+
     GLsizei vertexSize;
 
     SDL_Window *window;
@@ -84,6 +89,13 @@ private:
     // To move camera with same fp in each comp
     float deltaTime; // time between current frame and last frame
     float lastFrame;
+
+    int frameCount;
+    float fpsTimer;
+    int currentFPS;
+    // vertex ve draw call bilgileri:
+    int currentVertexCount;
+    int currentDrawCalls;
 
     Player player;
 
