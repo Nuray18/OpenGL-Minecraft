@@ -58,9 +58,6 @@ private:
 
     bool running() { return isRunning; }
 
-    void drawDebugInfo(int fps, int drawCalls, int vertexCount);
-    GLuint createTextTexture(const std::string &text, SDL_Color color);
-
     GLsizei vertexSize;
 
     SDL_Window *window;
@@ -90,14 +87,6 @@ private:
     float deltaTime; // time between current frame and last frame
     float lastFrame;
 
-    int frameCount;
-    float fpsTimer;
-    int currentFPS;
-    // vertex ve draw call bilgileri:
-    int currentVertexCount;
-    int currentDrawCalls;
-
     Player player;
-
     World world;
 };

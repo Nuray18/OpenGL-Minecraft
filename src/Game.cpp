@@ -53,6 +53,7 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
         std::cerr << "Failed to initialize GLAD!" << std::endl;
         exit(-1);
     }
+
     // SDL_GL_SetSwapInterval(1); // VSync aç not good in FPS
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -425,59 +426,3 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     SDL_GL_SwapWindow(window);
     // std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
 }
-
-void Game::drawDebugInfo(int fps, int drawCalls, int vertexCount)
-{
-    SDL_Color color = {255, 255, 255, 255}; // beyaz
-
-    std::string text = "FPS: " + std::to_string(fps) +
-                       "  DrawCalls: " + std::to_string(drawCalls) +
-                       "  Vertices: " + std::to_string(vertexCount);
-
-    GLuint texID = createTextTexture(text, color);
-
-    // texID'yi 2D quad üstünde ekranın sol üst köşesine çiz
-    // drawTexturedQuad(texID, x = 10, y = 10);
-
-    glDeleteTextures(1, &texID); // her karede oluşturulduğu için silinir
-}
-
-void Game::drawDebugInfo(int fps, int drawCalls, int vertexCount)
-{
-    SDL_Color color = {255, 255, 255, 255}; // beyaz
-
-    std::string text = "FPS: " + std::to_string(fps) +
-                       "  DrawCalls: " + std::to_string(drawCalls) +
-                       "  Vertices: " + std::to_string(vertexCount);
-
-    GLuint texID = createTextTexture(text, color);
-
-    // texID'yi 2D quad üstünde ekranın sol üst köşesine çiz
-    // drawTexturedQuad(texID, x = 10, y = 10);
-
-    glDeleteTextures(1, &texID); // her karede oluşturulduğu için silinir
-}
-
-// GLuint Game::createTextTexture(const std::string &text, SDL_Color color)
-//{
-//     SDL_Surface *surface = TTF_RenderText_Blended(font, text.c_str(), color);
-//     if (!surface)
-//         return 0;
-//
-//     GLuint textureID;
-//     glGenTextures(1, &textureID);
-//     glBindTexture(GL_TEXTURE_2D, textureID);
-
-// SDL Surface to OpenGL texture
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-//                 surface->w, surface->h, 0,
-//                 GL_BGRA, GL_UNSIGNED_BYTE, surface->pixels);
-//
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-//    SDL_FreeSurface(surface);
-//    return textureID;
-//}
-
-// every thing we need to create a 3D cube is Projection, view, model.
