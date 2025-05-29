@@ -3,7 +3,7 @@
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
 
 Game::Game()
-    : player(vec3(-66.0f, 0.0f, 10.0f))
+    : player(vec3(-66.0f, 0.0f, 10.0f)), textRenderer(TextRenderer(800, 600))
 {
     window = nullptr;
     gameState = GameState::PLAY;
@@ -41,22 +41,26 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
 
     // OpenGL için SDL pencere ayarları
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     window = SDL_CreateWindow(title, x, y, w, h, flags | SDL_WINDOW_OPENGL);
+
     glContext = SDL_GL_CreateContext(window);
 
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) // biz GLFW kullanmadigimiz icin "glfwGetProcAddress" degilde SDL ile olani cagiriyoruz
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
-        std::cerr << "Failed to initialize GLAD!" << std::endl;
+        cerr << "Failed To Initialize OpenGL" << endl;
         exit(-1);
     }
 
     // SDL_GL_SetSwapInterval(1); // VSync aç not good in FPS
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
+
     setupOpenGL();
 }
 

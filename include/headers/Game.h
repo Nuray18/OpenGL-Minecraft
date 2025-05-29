@@ -1,6 +1,7 @@
 #pragma once
 #include "headers/Player.h"
 #include "headers/World.h"
+#include "headers/TextRenderer.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -89,4 +90,6 @@ private:
 
     Player player;
     World world;
+
+    TextRenderer textRenderer;
 };

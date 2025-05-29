@@ -8,6 +8,19 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight)
     loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
 }
 
+void TextRenderer::LoadText(const char *fontPath, int fontSize)
+{
+    FT_Library ft;
+
+    if (FT_Init_FreeType(&ft))
+    {
+    }
+}
+
+void TextRenderer::RenderText(const string &text, float x, float y, float scale, vec3 color)
+{
+}
+
 GLuint TextRenderer::loadTextShaders(const char *vertexPath, const char *fragmentPath)
 {
     // 1. Shader dosyalarını oku
