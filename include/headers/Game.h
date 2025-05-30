@@ -92,4 +92,9 @@ private:
     World world;
 
     TextRenderer textRenderer;
+
+    float fps;
+    float fpsTimer;
+    int fpsFrameCount;
+    std::string fpsText;
 };

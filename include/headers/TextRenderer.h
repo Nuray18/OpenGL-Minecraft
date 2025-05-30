@@ -1,19 +1,21 @@
 #pragma once
 #include <map>
 #include <string>
-#include <glm/glm.hpp>
-#include <glad/glad.h>
-
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <cmath>
 
-#include "headers/ft2build.h"
+#include "ft2build.h"
 #include FT_FREETYPE_H
 
-#include "headers/stb_image.h"
 #include "headers/stb_easy_font.h"
+
+#include "glad/glad.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 using namespace std;
 using namespace glm;
@@ -40,6 +42,6 @@ public:
     TextRenderer(int screenWidth, int screenHeight);
     ~TextRenderer();
 
-    void LoadText(const char *fontPath, int fontSize);
+    void LoadText(const string &fontPath, int fontSize);
     void RenderText(const string &text, float x, float y, float scale, vec3 color);
 };

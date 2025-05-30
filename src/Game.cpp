@@ -12,6 +12,11 @@ Game::Game()
 
     deltaTime = 0.0f;
     lastFrame = SDL_GetTicks();
+
+    fps = 0.0f;
+    fpsTimer = 0.0f;
+    fpsFrameCount = 0;
+    fpsText = "FPS: 0";
 }
 
 Game::~Game()
@@ -255,12 +260,14 @@ void Game::setupOpenGL()
     // world space positions of our cubes
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
-
+    textRenderer.loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
     // error checks
     checkShaderErrors();
     checkErrors();
 
     texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
+    // FPS counter board
+    textRenderer.LoadText("fonts/Nase.ttf", 16);
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -339,6 +346,19 @@ void Game::gameLoop()
 
         if (deltaTime == 0.0f) // güvenlik için
             deltaTime = 0.0001f;
+
+        // for fps counter
+        fpsFrameCount++;
+        fpsTimer += deltaTime;
+
+        if (fpsTimer >= 1.0f) // her 1 saniyede bir
+        {
+            fps = fpsFrameCount / fpsTimer;
+            fpsText = "FPS: " + std::to_string((int)fps);
+
+            fpsFrameCount = 0;
+            fpsTimer = 0.0f;
+        }
 
         while (SDL_PollEvent(&event))
         {
@@ -426,6 +446,8 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     world.update(playerPosition);                            // dunyayi generate eder.
     world.render(shaderProgram, vertexSize, playerPosition); // generate edilen dunyayi ekranda render et.
     player.getPlayerPos();
+
+    textRenderer.RenderText(fpsText, 10.0f, screenHeight - 30.0f, 0.8f, vec3(0.0f, 0.0f, 0.0f));
 
     SDL_GL_SwapWindow(window);
     // std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
