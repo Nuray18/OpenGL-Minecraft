@@ -74,20 +74,50 @@ void World::update(vec3 playerPosition)
 
 // var olan chunklari gpu'ya cizer
 // gorsel dunya(cizim, ekran)
-void World::render(unsigned int shaderProgram, int vertexSize, vec3 playerPosition)
+void World::render(unsigned int shaderProgram, int vertexSize, vec3 playerPosition, mat4 viewProjMatrix)
 {
     int playerChunkX = floor(playerPosition.x / CHUNK_SIZE);
     int playerChunkZ = floor(playerPosition.z / CHUNK_SIZE);
 
     for (auto &pair : chunks)
     {
-        int chunkX = pair.first.first;
-        int chunkZ = pair.first.second;
+        Chunk *chunk = pair.second;
 
-        if (abs(chunkX - playerChunkX) <= RENDER_DISTANCE && abs(chunkZ - playerChunkZ) <= RENDER_DISTANCE)
+        // 1️⃣ Chunk’ın dünya pozisyonu (orta noktası)
+        vec3 chunkCenter(
+            chunk->chunkX * CHUNK_WIDTH + CHUNK_WIDTH / 2.0f,
+            CHUNK_HEIGHT / 2.0f,
+            chunk->chunkZ * CHUNK_DEPTH + CHUNK_DEPTH / 2.0f);
+
+        // 2️⃣ Chunk’ın yarıçapı (diyelim en büyük boyut yarı uzunluğu)
+        float radius = sqrt((CHUNK_WIDTH / 2.0f) * (CHUNK_WIDTH / 2.0f) +
+                            (CHUNK_HEIGHT / 2.0f) * (CHUNK_HEIGHT / 2.0f) +
+                            (CHUNK_DEPTH / 2.0f) * (CHUNK_DEPTH / 2.0f));
+
+        // 3️⃣ Basit Sphere-Frustum test (AABB de yapabilirsin ama sphere basit)
+        if (!isSphereInFrustum(viewProjMatrix, chunkCenter, radius))
         {
-            // bu func cizme gorevi gorur.
-            pair.second->render(shaderProgram, vertexSize); // second -> Chunk*
+            // Bu chunk kamerada degil, cizme
+            continue;
         }
+
+        // 4️⃣ Chunk’ı çiz
+        chunk->render(shaderProgram, vertexSize);
     }
+}
+
+bool World::isSphereInFrustum(const mat4 &viewProjMatrix, const vec3 &center, float radius)
+{
+    vec4 clipSpacePos = viewProjMatrix * vec4(center, 1.0f);
+    float w = clipSpacePos.w;
+
+    // NDC space: x, y, z ∈ [-w, w]
+    if (clipSpacePos.x < -w - radius || clipSpacePos.x > w + radius)
+        return false;
+    if (clipSpacePos.y < -w - radius || clipSpacePos.y > w + radius)
+        return false;
+    if (clipSpacePos.z < -w - radius || clipSpacePos.z > w + radius)
+        return false;
+
+    return true;
 }

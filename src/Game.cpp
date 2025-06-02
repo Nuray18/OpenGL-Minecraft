@@ -445,10 +445,15 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glBindTexture(GL_TEXTURE_2D, texture1);
 
     // we can write view = player.camera.getViewMAtrix();
-    mat4 view = player.getCamera().getViewMatrix();
+    mat4 view = player.getCamera().getViewMatrix(); // viewMatrix, kameranın pozisyonunu ve hangi yöne baktığını tanımlar.
 
-    mat4 projection = mat4(1.0f); // perspective look
-    projection = perspective(radians(player.getCamera().zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+    mat4 projection = mat4(1.0f);                                                                                       // perspective look
+    projection = perspective(radians(player.getCamera().zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f); // projectionMatrix, sahneyi ekrana projeksiyon yoluyla yansıtır.                                                                                        // 👉 Perspektif projeksiyon: Yakın objeler büyük, uzak objeler küçük görünür.
+                                                                                                                        // 👉 Orthographic projeksiyon: Her şey aynı ölçekte görünür (Minecraft gibi).
+                                                                                                                        // 👉 for culling we need multiple of these two
+
+    // Bu View-Projection Matrix, sahnendeki her 3D noktayı ekranda doğru pozisyona dönüştürür.
+    mat4 viewProjMatrix = view * projection;
 
     // retrieve the matrix uniform locations
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -468,7 +473,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
         lastPlayerChunk = currentChunk; // son chunki guncelle
     }
 
-    world.render(shaderProgram, vertexSize, playerPosition); // generate edilen dunyayi ekranda render et.
+    world.render(shaderProgram, vertexSize, playerPosition, viewProjMatrix); // generate edilen dunyayi ekranda render et.
 
     SDL_GL_SwapWindow(window);
 }
