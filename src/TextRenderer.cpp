@@ -3,7 +3,7 @@
 
 TextRenderer::TextRenderer(int screenWidth, int screenHeight)
 {
-    loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
+    shaderProgram = loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
 
     glUseProgram(shaderProgram);
 
@@ -49,7 +49,8 @@ void TextRenderer::LoadText(const string &fontPath, int fontSize)
     FT_Face face;
     if (FT_New_Face(ft, fontPath.c_str(), 0, &face))
     {
-        cerr << "ERROR::FREETYPE: Failed to load font\n";
+        cout << "ERROR::FREETYPE: Failed to load font\n"
+             << endl;
         return;
     }
 
@@ -60,7 +61,10 @@ void TextRenderer::LoadText(const string &fontPath, int fontSize)
     for (unsigned char c = 0; c < 128; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        {
+            cout << "Failed to load Glyph for char: " << c << endl;
             continue;
+        }
 
         GLuint texture;
         glGenTextures(1, &texture);

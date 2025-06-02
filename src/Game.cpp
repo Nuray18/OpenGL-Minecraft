@@ -74,9 +74,9 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    setupOpenGL();
+    textRenderer = new TextRenderer(800, 600);
 
-    // textRenderer = new TextRenderer(800, 600);
+    setupOpenGL();
 }
 
 GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
@@ -271,20 +271,13 @@ void Game::setupOpenGL()
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
 
-    textRenderer->loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR)
-    {
-        std::cout << "OpenGL error after loadTextShaders: " << err << std::endl;
-    }
-
     //   error checks
     checkShaderErrors();
     checkErrors();
 
     texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
     // FPS counter board
-    textRenderer->LoadText("fonts/Nase.ttf", 16);
+    textRenderer->LoadText("C:/Windows/Fonts/arial.ttf", 36);
 
     // enable it
     glGenVertexArrays(1, &VAO);
