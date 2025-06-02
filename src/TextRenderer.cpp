@@ -3,6 +3,10 @@
 
 TextRenderer::TextRenderer(int screenWidth, int screenHeight)
 {
+    // Blend ayarları: alpha blending aktif et
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     shaderProgram = loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
 
     glUseProgram(shaderProgram);
@@ -49,8 +53,7 @@ void TextRenderer::LoadText(const string &fontPath, int fontSize)
     FT_Face face;
     if (FT_New_Face(ft, fontPath.c_str(), 0, &face))
     {
-        cout << "ERROR::FREETYPE: Failed to load font\n"
-             << endl;
+        cerr << "ERROR::FREETYPE: Failed to load font\n";
         return;
     }
 
@@ -62,7 +65,7 @@ void TextRenderer::LoadText(const string &fontPath, int fontSize)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
-            cout << "Failed to load Glyph for char: " << c << endl;
+            cerr << "Failed to load Glyph for char: " << c;
             continue;
         }
 
@@ -77,8 +80,8 @@ void TextRenderer::LoadText(const string &fontPath, int fontSize)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         Character character = {
             texture,

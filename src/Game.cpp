@@ -17,6 +17,8 @@ Game::Game()
     fpsTimer = 0.0f;
     fpsFrameCount = 0;
     fpsText = "FPS: 0";
+
+    lastPlayerChunk = ivec2(INT_MIN, INT_MIN); // Başlangıçta oyuncu “bilinmeyen” chunk'ta
 }
 
 Game::~Game()
@@ -370,6 +372,10 @@ void Game::gameLoop()
             fpsTimer = 0.0f;
         }
 
+        // her frame
+        float instantFPS = 1.0f / deltaTime;
+        std::cout << "Instant FPS: " << instantFPS << std::endl;
+
         while (SDL_PollEvent(&event))
         {
             handleEvents(event); // Olayları işleme.
@@ -454,11 +460,15 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glBindVertexArray(VAO);
 
     vec3 playerPosition = player.getPosition();
-    // world->chunks systemi ile calisma
-    world.update(playerPosition);                            // dunyayi generate eder.
+
+    ivec2 currentChunk = world.calculateChunkCoord(playerPosition);
+    if (currentChunk != lastPlayerChunk)
+    {
+        world.update(playerPosition);   // yeni chunki olustur
+        lastPlayerChunk = currentChunk; // son chunki guncelle
+    }
+
     world.render(shaderProgram, vertexSize, playerPosition); // generate edilen dunyayi ekranda render et.
-    player.getPlayerPos();
 
     SDL_GL_SwapWindow(window);
-    // std::cout << "FPS: " << 1.0f / deltaTime << std::endl;
 }

@@ -57,6 +57,13 @@ void World::destroyChunk(vec3 playerPosition)
     }
 }
 
+ivec2 World::calculateChunkCoord(const vec3 &playerPosition)
+{
+    int chunkX = floor(playerPosition.x / CHUNK_SIZE);
+    int chunkZ = floor(playerPosition.z / CHUNK_SIZE);
+    return ivec2(chunkX, chunkZ);
+}
+
 // yeni chunklar olusturur.
 // mantiksal dunya (logic, pozisyon, veri)
 void World::update(vec3 playerPosition)

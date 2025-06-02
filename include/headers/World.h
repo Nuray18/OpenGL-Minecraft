@@ -14,6 +14,7 @@ public:
     void update(vec3 playerPosition);
     bool isChuckLoaded(int chunkX, int chunkY);
     void destroyChunk(vec3 playerPosition);
+    ivec2 calculateChunkCoord(const vec3 &playerPosition);
 
 private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z

@@ -96,5 +96,7 @@ private:
     float fps;
     float fpsTimer;
     int fpsFrameCount;
-    std::string fpsText;
+    string fpsText;
+
+    ivec2 lastPlayerChunk;
 };
