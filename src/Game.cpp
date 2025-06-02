@@ -3,7 +3,7 @@
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
 
 Game::Game()
-    : player(vec3(-66.0f, 0.0f, 10.0f)), textRenderer(TextRenderer(800, 600))
+    : player(vec3(-66.0f, 0.0f, 10.0f))
 {
     window = nullptr;
     gameState = GameState::PLAY;
@@ -31,6 +31,8 @@ Game::~Game()
         window = nullptr;
     }
 
+    delete textRenderer;
+
     SDL_Quit();
 }
 
@@ -54,6 +56,12 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
 
     window = SDL_CreateWindow(title, x, y, w, h, flags | SDL_WINDOW_OPENGL);
 
+    if (!window)
+    {
+        cerr << "Failed to create SDL window: " << SDL_GetError() << endl;
+        exit(-1);
+    }
+
     glContext = SDL_GL_CreateContext(window);
 
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
@@ -67,6 +75,8 @@ void Game::init(const char *title, int x, int y, int w, int h, Uint32 flags)
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     setupOpenGL();
+
+    // textRenderer = new TextRenderer(800, 600);
 }
 
 GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
@@ -260,14 +270,21 @@ void Game::setupOpenGL()
     // world space positions of our cubes
 
     loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
-    textRenderer.loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
-    // error checks
+
+    textRenderer->loadTextShaders("src/shaders/TextVertex.glsl", "src/shaders/TextFragment.glsl");
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR)
+    {
+        std::cout << "OpenGL error after loadTextShaders: " << err << std::endl;
+    }
+
+    //   error checks
     checkShaderErrors();
     checkErrors();
 
     texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
     // FPS counter board
-    textRenderer.LoadText("fonts/Nase.ttf", 16);
+    textRenderer->LoadText("fonts/Nase.ttf", 16);
 
     // enable it
     glGenVertexArrays(1, &VAO);
@@ -420,6 +437,8 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glEnable(GL_DEPTH_TEST);                            // enables the depth so we can draw each sides in the true way
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame
 
+    textRenderer->RenderText(fpsText, 10.0f, screenHeight - 30.0f, 0.8f, vec3(0.0f, 0.0f, 0.0f));
+
     glUseProgram(shaderProgram);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0); // GL_TEXTURE0 için
@@ -446,8 +465,6 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     world.update(playerPosition);                            // dunyayi generate eder.
     world.render(shaderProgram, vertexSize, playerPosition); // generate edilen dunyayi ekranda render et.
     player.getPlayerPos();
-
-    textRenderer.RenderText(fpsText, 10.0f, screenHeight - 30.0f, 0.8f, vec3(0.0f, 0.0f, 0.0f));
 
     SDL_GL_SwapWindow(window);
     // std::cout << "FPS: " << 1.0f / deltaTime << std::endl;

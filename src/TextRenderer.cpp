@@ -12,6 +12,8 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight)
     unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
 
+    glUniform1i(glGetUniformLocation(shaderProgram, "text"), 0);
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
@@ -34,6 +36,8 @@ TextRenderer::~TextRenderer()
 
 void TextRenderer::LoadText(const string &fontPath, int fontSize)
 {
+    Characters.clear();
+
     FT_Library ft;
 
     if (FT_Init_FreeType(&ft))
@@ -119,6 +123,8 @@ void TextRenderer::RenderText(const string &text, float x, float y, float scale,
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        x += (ch.Advance >> 6) * scale; // Advance in 1/64 pixels, >>6 ile pixele cevir
     }
 
     glBindVertexArray(0);
@@ -130,6 +136,11 @@ GLuint TextRenderer::loadTextShaders(const char *vertexPath, const char *fragmen
     // 1. Shader dosyalarını oku
     ifstream vertexFile(vertexPath);
     ifstream fragmentFile(fragmentPath);
+    if (!vertexFile.is_open() || !fragmentFile.is_open())
+    {
+        cerr << "ERROR::SHADER: Could not open shader files\n";
+        return 0;
+    }
     stringstream vertexStream, fragmentStream;
 
     vertexStream << vertexFile.rdbuf();
@@ -148,14 +159,43 @@ GLuint TextRenderer::loadTextShaders(const char *vertexPath, const char *fragmen
     glShaderSource(vertexShader, 1, &vShaderCode, NULL);
     glCompileShader(vertexShader);
 
+    // for debugging
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+             << infoLog << endl;
+    }
+
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fShaderCode, NULL);
     glCompileShader(fragmentShader);
+
+    // for debugging
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+             << infoLog << endl;
+    }
 
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
+
+    // for debugging
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
+             << infoLog << endl;
+    }
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);

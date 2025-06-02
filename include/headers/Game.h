@@ -91,7 +91,7 @@ private:
     Player player;
     World world;
 
-    TextRenderer textRenderer;
+    TextRenderer *textRenderer;
 
     float fps;
     float fpsTimer;
