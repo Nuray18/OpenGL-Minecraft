@@ -59,7 +59,7 @@ void Chunk::update()
     // Chunk içeriğini güncelle (örneğin mesh oluşturma)
 }
 
-void Chunk::render(unsigned int shaderProgram, int vertexSize)
+void Chunk::render(unsigned int shaderProgram, int vertexSize, const vector<Chunk *> &chunks)
 {
     int modelLoc = glGetUniformLocation(shaderProgram, "model");
 
@@ -72,28 +72,21 @@ void Chunk::render(unsigned int shaderProgram, int vertexSize)
                 if (getBlock(x, y, z) == 0)
                     continue;
 
-                bool visible = false;
-
                 int worldX = chunkX * CHUNK_WIDTH + x; // herhagi bir locationda hangi chunk olursa olsun sadece bir chunk odakli degil tum chunklar icin odakli sistem
                 int worldZ = chunkZ * CHUNK_DEPTH + z;
 
-                // right face
-                if (getBlock(worldX + 1, y, worldZ) != 0)
+                bool visible = false;
+                if (getBlockGlobal(worldX + 1, y, worldZ, chunks) == 0)
                     visible = true;
-                // left face
-                if (getBlock(worldX - 1, y, worldZ) != 0)
+                if (getBlockGlobal(worldX - 1, y, worldZ, chunks) == 0)
                     visible = true;
-                // up face
-                if (getBlock(worldX, y + 1, worldZ) != 0)
+                if (getBlockGlobal(worldX, y + 1, worldZ, chunks) == 0)
                     visible = true;
-                // down face
-                if (getBlock(worldX, y - 1, worldZ) != 0)
+                if (getBlockGlobal(worldX, y - 1, worldZ, chunks) == 0)
                     visible = true;
-                // front face
-                if (getBlock(worldX, y, worldZ + 1) != 0)
+                if (getBlockGlobal(worldX, y, worldZ + 1, chunks) == 0)
                     visible = true;
-                // back face
-                if (getBlock(worldX, y, worldZ - 1) != 0)
+                if (getBlockGlobal(worldX, y, worldZ - 1, chunks) == 0)
                     visible = true;
 
                 if (!visible)
@@ -130,4 +123,30 @@ glm::ivec2 Chunk::getChunkPosition() const
 int Chunk::randNoice(int min, int max)
 {
     return min + rand() % (max - min + 1);
+}
+
+int Chunk::getBlockGlobal(int worldX, int y, int worldZ, const vector<Chunk *> &chunks) const
+{
+    int targetChunkX = worldX / CHUNK_WIDTH;
+    int targetChunkZ = worldZ / CHUNK_DEPTH;
+
+    int localX = worldX % CHUNK_WIDTH;
+    int localZ = worldZ % CHUNK_DEPTH;
+
+    if (localX < 0)
+        localX += CHUNK_WIDTH;
+
+    if (localZ < 0)
+        localZ += CHUNK_DEPTH;
+
+    for (const Chunk *chunk : chunks)
+    {
+        ivec2 pos = chunk->getChunkPosition();
+        if (pos.x == targetChunkX && pos.y == targetChunkZ)
+        {
+            return chunk->getBlock(localX, y, localZ);
+        }
+    }
+
+    return 0; // komsu chunk yoksa hava say.
 }

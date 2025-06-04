@@ -453,7 +453,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
                                                                                                                         // 👉 for culling we need multiple of these two
 
     // Bu View-Projection Matrix, sahnendeki her 3D noktayı ekranda doğru pozisyona dönüştürür.
-    mat4 viewProjMatrix = view * projection;
+    mat4 viewProjMatrix = projection * view;
 
     // retrieve the matrix uniform locations
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -466,12 +466,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
 
     vec3 playerPosition = player.getPosition();
 
-    ivec2 currentChunk = world.calculateChunkCoord(playerPosition);
-    if (currentChunk != lastPlayerChunk)
-    {
-        world.update(playerPosition);   // yeni chunki olustur
-        lastPlayerChunk = currentChunk; // son chunki guncelle
-    }
+    world.update(playerPosition, viewProjMatrix); // yeni chunki olustur
 
     world.render(shaderProgram, vertexSize, playerPosition, viewProjMatrix); // generate edilen dunyayi ekranda render et.
 
