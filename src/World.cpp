@@ -76,7 +76,7 @@ World::~World()
 // sadece oyuncunun pozisyonuna yakin olan chunklari uret.
 void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix)
 {
-    ivec2 playerChunkCoord = calculateChunkCoord(playerPosition);
+    pair<int, int> playerChunkCoord = calculateChunkCoord(playerPosition);
     newVisibleChunks.clear();
 
     // burda sadece x ekseni ve z(derinlik) ekseni boyunca chunk olusturuyoruz yani y ekseninde chunklar olusturmuyoruz.
@@ -84,37 +84,69 @@ void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix
     {
         for (int dz = -RENDER_DISTANCE; dz <= RENDER_DISTANCE; dz++) // y ekseninde chunklar
         {
-            ivec2 chunkCoord(playerChunkCoord.x + dx, playerChunkCoord.y + dz);
+            pair<int, int> chunkCoord(playerChunkCoord.first + dx, playerChunkCoord.second + dz);
 
-            vec3 min = vec3(chunkCoord.x * CHUNK_WIDTH, 0, chunkCoord.y * CHUNK_DEPTH);
+            vec3 min = vec3(chunkCoord.first * CHUNK_WIDTH, 0, chunkCoord.second * CHUNK_DEPTH);
             vec3 max = min + vec3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
 
             if (isAABBInFrustum(min, max, viewProjMatrix))
             {
-                // ✅ Ekranda görünen yani daha onceden yuklenmis chunk’lar “korunur”
                 newVisibleChunks.insert(chunkCoord);
 
-                // ➕ Ekranda görünen ama daha önce yüklenmemiş yeni chunk’lar generate edilir.
-                if (chunks.find({chunkCoord.x, chunkCoord.y}) == chunks.end())
+                if (chunks.find(chunkCoord) == chunks.end())
                 {
-                    chunks[{chunkCoord.x, chunkCoord.y}] = new Chunk(chunkCoord.x, chunkCoord.y);
-                }
-            }
+                    // Cache'te varsa cache'ten al
+                    auto cacheIt = chunkCache.find(chunkCoord);
+                    // Burda cache icinde var ise RAM'a gitme ihtiyaci kalmaz
+                    if (cacheIt != chunkCache.end())
+                    {
+                        // chunka ekle
+                        chunks[chunkCoord] = cacheIt->second;
 
+                        // ekledikten sonra LRU'dan sil
+                        cacheOrder.erase(cacheMap[chunkCoord]);
+                        cacheMap.erase(chunkCoord);
+                        chunkCache.erase(cacheIt);
+                    }
+                    else
+                    // burda RAM'a gideriz ve yeni olustururuz
+                    {
+                        // Ne aktifte ne de cache'te varsa yeni oluştur
+                        chunks[chunkCoord] = new Chunk(chunkCoord.first, chunkCoord.second);
+                    }
+                }
+                // ✅ Böylece aynı chunk birkaç saniye içinde tekrar görünürse, yeniden generate etmek yerine cache’ten alıyoruz.
+            }
             // burda culling ile ekliyoruz blocklari
         }
     }
 }
 
+// 👁️ Görünmeyen chunk’ları tespit edip onları aktif chunk listesinden çıkarıp cache’e atmaktır.
 void World::destroyChunk()
 {
+    // it->first means x and y {x, y} like this AND it->second means Chunk* WHEN we say it->first->second we mean y value.
     for (auto it = chunks.begin(); it != chunks.end();)
     {
-        ivec2 chunkCoord = ivec2(it->first.first, it->first.second);
-        // ❌ Ekranda görünmeyen chunk’lar silinir
+        pair<int, int> chunkCoord = it->first;
+
         if (newVisibleChunks.find(chunkCoord) == newVisibleChunks.end())
         {
-            delete (*it).second; // bu kullanim eski kullanimdir ve pointer ile degerin kendisine ulasir. Yenisi soyledir it->second. yani su anlama gelir yildiz ile sunu deriz go to that adress and take the second value
+            // Cache'e chunk ekle
+            chunkCache[chunkCoord] = it->second;
+            cacheOrder.push_back(chunkCoord);          // sona ekle
+            cacheMap[chunkCoord] = --cacheOrder.end(); // iterator'u sakla
+
+            // Eğer kapasiteyi aştıysa en eskiyi sil
+            if (cacheOrder.size() > CHUNK_CACHE_SIZE)
+            {
+                pair<int, int> oldest = cacheOrder.front();
+                cacheOrder.pop_front();    // listeden çıkar
+                delete chunkCache[oldest]; // belleği temizle
+                chunkCache.erase(oldest);  // map'ten çıkar
+                cacheMap.erase(oldest);    // iterator'u da sil
+            }
+            // Aktif chunk listesinden çıkar
             it = chunks.erase(it);
         }
         else
@@ -128,11 +160,11 @@ void World::destroyBlock()
 {
 }
 
-ivec2 World::calculateChunkCoord(const vec3 &playerPosition)
+pair<int, int> World::calculateChunkCoord(const vec3 &playerPosition)
 {
     int chunkX = floor(playerPosition.x / CHUNK_SIZE);
     int chunkZ = floor(playerPosition.z / CHUNK_SIZE);
-    return ivec2(chunkX, chunkZ);
+    return pair<int, int>(chunkX, chunkZ);
 }
 
 // yeni chunklar olusturur.
@@ -168,7 +200,7 @@ void World::render(unsigned int shaderProgram, int vertexSize, const vec3 &playe
         // burda culling ile ekliyoruz
 
         // 🚀🧠 burda vector chunk istiyor parametre ben ise unordered map kullaniyorum.
-        // chunk->render(shaderProgram, vertexSize);
+        chunk->render(shaderProgram, vertexSize, this, true); // with this will enable and disable the occulusion effect.
     }
 }
 
@@ -189,4 +221,26 @@ bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const gl
             return false;
     }
     return true;
+}
+
+int World::getBlockGlobal(int worldX, int y, int worldZ) const
+{
+    int chunkX = worldX / CHUNK_WIDTH;
+    int chunkZ = worldZ / CHUNK_DEPTH;
+
+    int localX = worldX % CHUNK_WIDTH;
+    int localZ = worldZ % CHUNK_DEPTH;
+
+    if (localX < 0)
+        localX += CHUNK_WIDTH;
+    if (localZ < 0)
+        localZ += CHUNK_DEPTH;
+
+    auto it = chunks.find({chunkX, chunkZ});
+    if (it != chunks.end())
+    {
+        return it->second->getBlock(localX, y, localZ);
+    }
+
+    return 0; // chunk yoksa hava kabul
 }

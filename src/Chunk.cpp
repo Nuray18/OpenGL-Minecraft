@@ -1,4 +1,5 @@
 #include "headers/Chunk.h"
+#include "headers/World.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h> // OpenGL fonksiyonları için
@@ -59,9 +60,10 @@ void Chunk::update()
     // Chunk içeriğini güncelle (örneğin mesh oluşturma)
 }
 
-void Chunk::render(unsigned int shaderProgram, int vertexSize, const vector<Chunk *> &chunks)
+void Chunk::render(unsigned int shaderProgram, int vertexSize, const World *world, bool debugOcclusion) // chunks bir vectirdur chunk pointeri saklayan vector
 {
     int modelLoc = glGetUniformLocation(shaderProgram, "model");
+    int colorLoc = glGetUniformLocation(shaderProgram, "color");
 
     for (int x = 0; x < CHUNK_WIDTH; ++x)
     {
@@ -76,25 +78,36 @@ void Chunk::render(unsigned int shaderProgram, int vertexSize, const vector<Chun
                 int worldZ = chunkZ * CHUNK_DEPTH + z;
 
                 bool visible = false;
-                if (getBlockGlobal(worldX + 1, y, worldZ, chunks) == 0)
+                if (world->getBlockGlobal(worldX + 1, y, worldZ) == 0)
                     visible = true;
-                if (getBlockGlobal(worldX - 1, y, worldZ, chunks) == 0)
+                if (world->getBlockGlobal(worldX - 1, y, worldZ) == 0)
                     visible = true;
-                if (getBlockGlobal(worldX, y + 1, worldZ, chunks) == 0)
+                if (world->getBlockGlobal(worldX, y + 1, worldZ) == 0)
                     visible = true;
-                if (getBlockGlobal(worldX, y - 1, worldZ, chunks) == 0)
+                if (world->getBlockGlobal(worldX, y - 1, worldZ) == 0)
                     visible = true;
-                if (getBlockGlobal(worldX, y, worldZ + 1, chunks) == 0)
+                if (world->getBlockGlobal(worldX, y, worldZ + 1) == 0)
                     visible = true;
-                if (getBlockGlobal(worldX, y, worldZ - 1, chunks) == 0)
+                if (world->getBlockGlobal(worldX, y, worldZ - 1) == 0)
                     visible = true;
 
-                if (!visible)
-                    continue;
+                // ✨ Occlusion kontrolü
+                if (!visible && !debugOcclusion)
+                    continue; // sadece debug açık değilse gizli olanları çizme
 
                 // block'u ciz
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(worldX, y, worldZ));
                 glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+                if (visible)
+                {
+                    glUniform3f(colorLoc, -1.0f, -1.0f, -1.0f); // sadece texture kullan
+                }
+                else
+                {
+                    glUniform3f(colorLoc, 1.0f, 1.0f, 0.0f); // görünmeyen blok = sarı
+                }
+
                 glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertexSize / 3));
             }
         }
@@ -123,30 +136,4 @@ glm::ivec2 Chunk::getChunkPosition() const
 int Chunk::randNoice(int min, int max)
 {
     return min + rand() % (max - min + 1);
-}
-
-int Chunk::getBlockGlobal(int worldX, int y, int worldZ, const vector<Chunk *> &chunks) const
-{
-    int targetChunkX = worldX / CHUNK_WIDTH;
-    int targetChunkZ = worldZ / CHUNK_DEPTH;
-
-    int localX = worldX % CHUNK_WIDTH;
-    int localZ = worldZ % CHUNK_DEPTH;
-
-    if (localX < 0)
-        localX += CHUNK_WIDTH;
-
-    if (localZ < 0)
-        localZ += CHUNK_DEPTH;
-
-    for (const Chunk *chunk : chunks)
-    {
-        ivec2 pos = chunk->getChunkPosition();
-        if (pos.x == targetChunkX && pos.y == targetChunkZ)
-        {
-            return chunk->getBlock(localX, y, localZ);
-        }
-    }
-
-    return 0; // komsu chunk yoksa hava say.
 }

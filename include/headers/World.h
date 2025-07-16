@@ -1,8 +1,10 @@
 #pragma once
 #include "Chunk.h"
-#include "ivec2_hash.h"
+#include "pair_hash.h"
 #include <map>
+#include <list>
 #include <unordered_set>
+#include <unordered_map>
 #include <functional> // bu specialization yazmak icindir
 #include <vector>
 #include <glm/gtc/matrix_access.hpp>
@@ -22,12 +24,18 @@ public:
     bool isChuckLoaded(int chunkX, int chunkY);
     void destroyChunk();
     void destroyBlock();
-    ivec2 calculateChunkCoord(const vec3 &playerPosition);
+    pair<int, int> calculateChunkCoord(const vec3 &playerPosition);
     bool isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix);
+    int getBlockGlobal(int worldX, int y, int worldZ) const;
 
 private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z
-    map<pair<int, int>, Chunk *> chunks;
+    unordered_map<pair<int, int>, Chunk *, pair_hash> chunks;
     // means chunks[{x ,y}] -> chunk
-    unordered_set<ivec2> newVisibleChunks;
+    unordered_set<pair<int, int>, pair_hash> newVisibleChunks;
+
+    unordered_map<pair<int, int>, Chunk *, pair_hash> chunkCache;
+    // LRU sırasını tutan liste: en eski başta, en yeni sonda
+    list<pair<int, int>> cacheOrder;
+    unordered_map<pair<int, int>, list<pair<int, int>>::iterator, pair_hash> cacheMap;
 };

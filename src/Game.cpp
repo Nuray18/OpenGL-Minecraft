@@ -2,6 +2,11 @@
 #include "headers/stb_image.h"
 #include "headers/Game.h" // bu yazim kendi yazdigim kodlar icin
 
+// destroy block
+// occlusion culling problemi
+// cache sistemi -> chunk->unload kullanimi
+// one draw call system
+
 Game::Game()
     : player(vec3(-66.0f, 0.0f, 10.0f))
 {
@@ -120,7 +125,7 @@ GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
 }
 
 UVRange Game::getUVRange(int rowSize, int colSize, int targetIndex)
-// in my texture atlas height is 48, width is 16. now totalRows means how many texture block we have in texture atlas, and rowIndex means witch block we want to have with the index number of it.
+// in my texture atlas height is 48, width is 16. now totalRows means how many texture block we have in texture atlas, and rowIndex means which block we want to have with the index number of it.
 {
     int currRow = targetIndex / colSize;
     int currCol = targetIndex % colSize;
@@ -161,6 +166,7 @@ void Game::checkErrors()
     }
 }
 
+// burda biz once GPU da texture olusturuyoruz, yani objecti ki oraya koyacagimiz path'i nasil kullanacagini bilsin ayarlarini nasil yaacagini anlamasi icin.
 unsigned int Game::loadTexture(const char *path)
 {
     stbi_set_flip_vertically_on_load(true);
@@ -319,6 +325,8 @@ void Game::scrollCallback(float yOffset)
     player.getCamera().processMouseScroll(yOffset);
 }
 
+// Input Polling (durum kontrolü) → processInput()
+// → Sürekli hareket, yürüyüş,ziplama, kamera gibi şeyler.
 void Game::processInput() // with this func we comunicate with game throuh inputs(keys)
 {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -335,7 +343,6 @@ void Game::processInput() // with this func we comunicate with game throuh input
     if (state[SDL_SCANCODE_D])
         movement.x += player.speed;
 
-    // Sadece bir kere çağırıyoruz
     player.update(movement, deltaTime);
 
     // Zıplama ayrı tuşla çalışır
@@ -386,6 +393,8 @@ void Game::gameLoop()
     }
 }
 
+// Input Events (olay tabanlı) → handleEvents()
+// → Menü açma, pause, save, ESC tuşu, bir UI butonuna tıklama gibi şeyler.
 void Game::handleEvents(SDL_Event &event)
 {
     switch (event.type)
@@ -400,9 +409,6 @@ void Game::handleEvents(SDL_Event &event)
         {
         case SDLK_f:
             player.toggleFlightMode();
-            break;
-        case SDLK_SPACE:
-            player.jump();
             break;
 
         case SDLK_ESCAPE:
@@ -434,7 +440,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
 {
     glClearColor(0.529f, 0.808f, 0.922f, 1.0f);
     glEnable(GL_DEPTH_TEST);                            // enables the depth so we can draw each sides in the true way
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame eger temizlenmez se bir onceki frameden kalan renk ve z degerleri current frame ile cakisir cunku temizlenmediler.
 
     textRenderer->RenderText(fpsText, 10.0f, screenHeight - 30.0f, 0.8f, vec3(0.0f, 0.0f, 0.0f));
 
