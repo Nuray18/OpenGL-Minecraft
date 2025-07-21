@@ -2,20 +2,15 @@
 
 out vec4 FragColor;
 
+in float DebugFlag;
 in vec2 texCoord;
 
 uniform sampler2D texture1;
-uniform vec3 color;
 
 void main()
 {
-    vec4 texColor = texture(texture1, texCoord);
-
-    if (color == vec3(-1.0)) 
+    if (DebugFlag < 0.5)
     {
-        FragColor = texColor;
-    } else 
-    {
-        FragColor = vec4(color, 1.0);
+        FragColor = texture(texture1, texCoord);
     }
 };

@@ -17,7 +17,7 @@ public:
     void toggleFlightMode();
 
     vec3 getPosition() const;
-    void getPlayerPos();
+    void getPlayerPos(); // this function is for debugging
 
     float speed = 10.0f;
 

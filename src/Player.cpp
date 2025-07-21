@@ -24,7 +24,7 @@ void Player::jump()
 void Player::update(vec3 movementDirection, float deltaTime)
 {
     // 1️⃣ WASD yön hareketi varsa uygula
-    if (length(movementDirection) > 0.0f)
+    if (length(movementDirection) > 0.0f) // buradaki length functionu 0 dan farkli sayi var mi onu olcuyor.
     {
         vec3 moveDir = normalize(movementDirection);
         camera.processKeyboard(moveDir, deltaTime * speed);

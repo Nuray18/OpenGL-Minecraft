@@ -19,7 +19,7 @@ public:
     World();
     ~World();
     void generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix);
-    void render(unsigned int shaderProgram, int vertexSize, const vec3 &playerPosition, const mat4 &viewProjMatrix);
+    void render(unsigned int shaderProgram, const vec3 &playerPosition, const mat4 &viewProjMatrix);
     void update(const vec3 &playerPosition, const mat4 &viewProjMatrix);
     bool isChuckLoaded(int chunkX, int chunkY);
     void destroyChunk();

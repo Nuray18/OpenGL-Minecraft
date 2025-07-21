@@ -21,14 +21,6 @@
 using namespace std;
 using namespace glm;
 
-struct UVRange
-{
-    float uMin;
-    float uMax;
-    float vMin;
-    float vMax;
-};
-
 enum class GameState
 {
     PLAY,
@@ -49,7 +41,6 @@ private:
     void render();
     void setupOpenGL(); // OpenGL ayarlari
     GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
-    UVRange getUVRange(int rowSize, int colSize, int targetIndex);
     unsigned int loadTexture(const char *path);
     void checkShaderErrors();
     void checkErrors();
@@ -58,8 +49,6 @@ private:
     void processInput();
 
     bool running() { return isRunning; }
-
-    GLsizei vertexSize;
 
     SDL_Window *window;
     SDL_GLContext glContext;
@@ -79,10 +68,6 @@ private:
     unsigned int shaderProgram;
 
     unsigned int texture1;
-
-    unsigned int EBO;
-    unsigned int VAO; // vertex array object
-    unsigned int VBO; // vertex buffer object
 
     // To move camera with same fp in each comp
     float deltaTime; // time between current frame and last frame

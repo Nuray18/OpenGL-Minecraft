@@ -1,25 +1,25 @@
+#pragma once
+
 enum class BlockType
 {
-    Air,
-    Grass,
-    Dirt,
-    Stone
+    Air = 0,
+    Grass = 1,
+    Dirt = 2,
+    Stone = 3,
+    Sand = 4,
+    Water = 5,
+    // ... diğer bloklar
 };
 
-struct Block
+struct AtlasIndex
 {
-    BlockType type = BlockType::Air;
+    int row;
+    int col;
+};
 
-    Block() = default;
-    Block(BlockType t) : type(t) {}
-
-    bool isTransparent() const
-    {
-        return type == BlockType::Air;
-    }
-
-    bool isSolid() const
-    {
-        return type != BlockType::Air;
-    }
+struct BlockInfo
+{
+    BlockType type;
+    bool isSolid;       // Occlusion culling için
+    AtlasIndex uvIndex; // Texture atlas konumu
 };

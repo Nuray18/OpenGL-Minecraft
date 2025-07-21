@@ -182,7 +182,7 @@ void World::update(const vec3 &playerPosition, const mat4 &viewProjMatrix)
 
 // var olan chunklari gpu'ya cizer
 // gorsel dunya(cizim, ekran)
-void World::render(unsigned int shaderProgram, int vertexSize, const vec3 &playerPosition, const mat4 &viewProjMatrix)
+void World::render(unsigned int shaderProgram, const vec3 &playerPosition, const mat4 &viewProjMatrix)
 {
     int playerChunkX = floor(playerPosition.x / CHUNK_SIZE);
     int playerChunkZ = floor(playerPosition.z / CHUNK_SIZE);
@@ -200,7 +200,7 @@ void World::render(unsigned int shaderProgram, int vertexSize, const vec3 &playe
         // burda culling ile ekliyoruz
 
         // 🚀🧠 burda vector chunk istiyor parametre ben ise unordered map kullaniyorum.
-        chunk->render(shaderProgram, vertexSize, this, true); // with this will enable and disable the occulusion effect.
+        chunk->render(shaderProgram, this); // with this will enable and disable the occulusion effect.
     }
 }
 
