@@ -9,7 +9,7 @@
 // mesh caching
 // occlusion culling (z test)
 Game::Game()
-    : player(vec3(-66.0f, 0.0f, 10.0f))
+    : player(vec3(-66.0f, 100.0f, 10.0f))
 {
     window = nullptr;
     gameState = GameState::PLAY;

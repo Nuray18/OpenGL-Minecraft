@@ -19,7 +19,7 @@ public:
     World();
     ~World();
     void generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix);
-    void render(unsigned int shaderProgram, const vec3 &playerPosition, const mat4 &viewProjMatrix);
+    void render(unsigned int shaderProgram, const mat4 &viewProjMatrix);
     void update(const vec3 &playerPosition, const mat4 &viewProjMatrix);
     bool isChuckLoaded(int chunkX, int chunkY);
     void destroyChunk();
@@ -32,7 +32,7 @@ private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z
     unordered_map<pair<int, int>, Chunk *, pair_hash> chunks;
     // means chunks[{x ,y}] -> chunk
-    unordered_set<pair<int, int>, pair_hash> newVisibleChunks;
+    unordered_set<pair<int, int>, pair_hash> newVisibleChunks; // obje yok sadece kordinatlar
 
     unordered_map<pair<int, int>, Chunk *, pair_hash> chunkCache;
     // LRU sırasını tutan liste: en eski başta, en yeni sonda

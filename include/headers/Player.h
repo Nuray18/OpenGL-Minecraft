@@ -1,5 +1,6 @@
 #pragma once
 #include "headers/Camera.h"
+#include "headers/World.h"
 #include "glm/glm.hpp"
 #include <iostream>
 
@@ -13,6 +14,7 @@ public:
 
     void update(vec3 movementDirection, float deltaTime);
     void jump();
+    bool checkCollision(vec3 newPosition, const World &world);
     Camera &getCamera();
     void toggleFlightMode();
 
@@ -31,6 +33,7 @@ private:
     bool flightMode;
 
     float height; // player boyu.
+    float width;  // player genisligi
 
     Camera camera;
 };

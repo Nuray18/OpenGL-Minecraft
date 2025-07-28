@@ -25,10 +25,9 @@ public:
     Chunk(int chunkX, int chunkZ);
     ~Chunk();
     // private olan generateTerrain funcunu cagirir.
-    void generate();                                             // Chunk verisini üretir
-    void update();                                               // Chunk güncellemesi (mesela mesh yeniden oluşturma)
-    void render(unsigned int shaderProgram, const World *world); // chunks bir vectirdur chunk pointeri saklayan vector
-
+    void generate(); // Chunk verisini üretir
+    void update();   // Chunk güncellemesi (mesela mesh yeniden oluşturma)
+    void render(unsigned int shaderProgram);
     void setBlock(int x, int y, int z, int blockID);
     int getBlock(int x, int y, int z) const;
     int randNoice(int min, int max);

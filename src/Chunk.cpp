@@ -209,7 +209,7 @@ void Chunk::update()
     // Chunk içeriğini güncelle (örneğin mesh oluşturma)
 }
 
-void Chunk::render(unsigned int shaderProgram, const World *world) // chunks bir vectordur chunk pointeri saklayan vector
+void Chunk::render(unsigned int shaderProgram)
 {
     if (vertexSize == 0)
         return; // Çizilecek vertex yok

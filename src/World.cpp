@@ -10,6 +10,7 @@ struct FrustumPlane
     float distance;
 };
 
+// Kamera matrisinden 6 düzlemi çıkarır (görüş alanı tanımı)
 vector<FrustumPlane> extractFrustumPlanes(const glm::mat4 &m)
 {
     vector<FrustumPlane> planes(6);
@@ -61,6 +62,27 @@ vector<FrustumPlane> extractFrustumPlanes(const glm::mat4 &m)
     return planes;
 }
 
+// kamera gorus acisinda olan veya olmayan chunk lari kontrol eder eger disinda ise cizmez.
+bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix)
+{
+    auto planes = extractFrustumPlanes(viewProjMatrix);
+    for (const auto &plane : planes)
+    {
+        glm::vec3 p = min;
+        if (plane.normal.x >= 0)
+            p.x = max.x;
+        if (plane.normal.y >= 0)
+            p.y = max.y;
+        if (plane.normal.z >= 0)
+            p.z = max.z;
+
+        // kutunun disinda ise cizmiyoruz yani false
+        if (glm::dot(plane.normal, p) + plane.distance < 0)
+            return false;
+    }
+    return true;
+}
+
 World::World()
 {
 }
@@ -86,9 +108,11 @@ void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix
         {
             pair<int, int> chunkCoord(playerChunkCoord.first + dx, playerChunkCoord.second + dz);
 
+            // Bu min ve max, chunk’ın Axis-Aligned Bounding Box (AABB) sınırlarını belirler.
             vec3 min = vec3(chunkCoord.first * CHUNK_WIDTH, 0, chunkCoord.second * CHUNK_DEPTH);
             vec3 max = min + vec3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
 
+            // camera frustum icinde ise newVisibleChunks'in icine ekliyoruz
             if (isAABBInFrustum(min, max, viewProjMatrix))
             {
                 newVisibleChunks.insert(chunkCoord);
@@ -117,7 +141,6 @@ void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix
                 }
                 // ✅ Böylece aynı chunk birkaç saniye içinde tekrar görünürse, yeniden generate etmek yerine cache’ten alıyoruz.
             }
-            // burda culling ile ekliyoruz blocklari
         }
     }
 }
@@ -130,24 +153,25 @@ void World::destroyChunk()
     {
         pair<int, int> chunkCoord = it->first;
 
+        // eger chunk kordinatlari gorunen chunk listesinde degil ise cacheye ekle
         if (newVisibleChunks.find(chunkCoord) == newVisibleChunks.end())
         {
-            // Cache'e chunk ekle
-            chunkCache[chunkCoord] = it->second;
-            cacheOrder.push_back(chunkCoord);          // sona ekle
+            // Cache'ye chunk ekle
+            chunkCache[chunkCoord] = it->second;       // chunki cache icerisinde x ve y yerine koyuyoruz map ozelligi
+            cacheOrder.push_back(chunkCoord);          // sona ekle, bu ekleme ile gelen kordinatlardaki chunkin sirasini korumus oluyoruz.
             cacheMap[chunkCoord] = --cacheOrder.end(); // iterator'u sakla
 
-            // Eğer kapasiteyi aştıysa en eskiyi sil
+            // Eğer kapasiteyi aştıysa en eskiyi sil (LRU)
             if (cacheOrder.size() > CHUNK_CACHE_SIZE)
             {
                 pair<int, int> oldest = cacheOrder.front();
                 cacheOrder.pop_front();    // listeden çıkar
-                delete chunkCache[oldest]; // belleği temizle
-                chunkCache.erase(oldest);  // map'ten çıkar
+                delete chunkCache[oldest]; // belleği temizle // RAM den de cikar
+                chunkCache.erase(oldest);  // map'ten çıkar // sonra cacheden de sil
                 cacheMap.erase(oldest);    // iterator'u da sil
             }
-            // Aktif chunk listesinden çıkar
-            it = chunks.erase(it);
+            // Aktif chunk listesinden çıkar ancak memory'de duruyor ordan silmedik cunku cacheye ekledik.
+            it = chunks.erase(it); // chunks tanda siliyoruz cache'ye ekledikten sonra ve it de diger elemana geciyor
         }
         else
         {
@@ -160,6 +184,7 @@ void World::destroyBlock()
 {
 }
 
+// bu bize playerin durdugu chunk'i verir yani bulundugu chunk kordinatini
 pair<int, int> World::calculateChunkCoord(const vec3 &playerPosition)
 {
     int chunkX = floor(playerPosition.x / CHUNK_SIZE);
@@ -182,11 +207,8 @@ void World::update(const vec3 &playerPosition, const mat4 &viewProjMatrix)
 
 // var olan chunklari gpu'ya cizer
 // gorsel dunya(cizim, ekran)
-void World::render(unsigned int shaderProgram, const vec3 &playerPosition, const mat4 &viewProjMatrix)
+void World::render(unsigned int shaderProgram, const mat4 &viewProjMatrix)
 {
-    int playerChunkX = floor(playerPosition.x / CHUNK_SIZE);
-    int playerChunkZ = floor(playerPosition.z / CHUNK_SIZE);
-
     for (auto &pair : chunks)
     {
         Chunk *chunk = pair.second;
@@ -197,30 +219,9 @@ void World::render(unsigned int shaderProgram, const vec3 &playerPosition, const
         if (!isAABBInFrustum(min, max, viewProjMatrix))
             continue;
 
-        // burda culling ile ekliyoruz
-
         // 🚀🧠 burda vector chunk istiyor parametre ben ise unordered map kullaniyorum.
-        chunk->render(shaderProgram, this); // with this will enable and disable the occulusion effect.
+        chunk->render(shaderProgram);
     }
-}
-
-bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix)
-{
-    auto planes = extractFrustumPlanes(viewProjMatrix);
-    for (const auto &plane : planes)
-    {
-        glm::vec3 p = min;
-        if (plane.normal.x >= 0)
-            p.x = max.x;
-        if (plane.normal.y >= 0)
-            p.y = max.y;
-        if (plane.normal.z >= 0)
-            p.z = max.z;
-
-        if (glm::dot(plane.normal, p) + plane.distance < 0)
-            return false;
-    }
-    return true;
 }
 
 int World::getBlockGlobal(int worldX, int y, int worldZ) const

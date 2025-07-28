@@ -4,6 +4,7 @@ Player::Player(vec3 startPosition)
 {
     position = startPosition;
     height = 1.75f;
+    width = 0.3f;
     velocityY = 0.0f;
     gravity = -9.81f;
     jumpStrength = 5.0f;
@@ -36,6 +37,7 @@ void Player::update(vec3 movementDirection, float deltaTime)
         velocityY += gravity * deltaTime;
         position.y += velocityY * deltaTime;
 
+        // yer siniri
         if (position.y <= 0.0f)
         {
             position.y = 0.0f;
@@ -83,4 +85,27 @@ void Player::getPlayerPos()
     float y = position.y;
     float z = position.z;
     cout << x << " " << y << " " << z << endl;
+}
+
+bool Player::checkCollision(vec3 newPosition, const World &world)
+{
+    for (float x = newPosition.x - width; x <= newPosition.x + width; x += 1.0f)
+    {
+        for (float y = newPosition.y; y <= newPosition.y + height; y += 1.0f)
+        {
+            for (float z = newPosition.z - width; z <= newPosition.z + width; z += 1.0f)
+            {
+                int blockX = static_cast<int>(floor(x));
+                int blockY = static_cast<int>(floor(y));
+                int blockZ = static_cast<int>(floor(z));
+
+                int block = world.getBlockGlobal(blockX, blockY, blockZ);
+                if (block != 0)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
