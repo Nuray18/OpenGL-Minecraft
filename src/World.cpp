@@ -62,22 +62,38 @@ vector<FrustumPlane> extractFrustumPlanes(const glm::mat4 &m)
     return planes;
 }
 
-// kamera gorus acisinda olan veya olmayan chunk lari kontrol eder eger disinda ise cizmez.
+// kamera gorus acisinda olan veya olmayan chunk lari kontrol eder eger disinda ise cizmez. (SIMD) AVX ile calisir. To calculate 8 floats at the same time
 bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix)
 {
     auto planes = extractFrustumPlanes(viewProjMatrix);
+
     for (const auto &plane : planes)
     {
-        glm::vec3 p = min;
-        if (plane.normal.x >= 0)
-            p.x = max.x;
-        if (plane.normal.y >= 0)
-            p.y = max.y;
-        if (plane.normal.z >= 0)
-            p.z = max.z;
+        // AVX ile plane normal değerlerini yükle (x, y, z)
+        __m256 normal = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f, plane.normal.z, plane.normal.y, plane.normal.x, 0.0f);
 
-        // kutunun disinda ise cizmiyoruz yani false
-        if (glm::dot(plane.normal, p) + plane.distance < 0)
+        // AVX ile p vektörünü yükle (pozitif/negatif yön seçimi)
+        __m256 p = _mm256_set_ps(
+            0.0f, 0.0f, 0.0f, 0.0f,
+            (plane.normal.z >= 0 ? max.z : min.z),
+            (plane.normal.y >= 0 ? max.y : min.y),
+            (plane.normal.x >= 0 ? max.x : min.x),
+            0.0f);
+
+        // Dot product (x, y, z) paralel çarpma
+        __m256 mul = _mm256_mul_ps(normal, p);
+
+        // Dot değerlerini yatay toplama (x+y+z)
+        __m128 hi = _mm256_extractf128_ps(mul, 1);
+        __m128 lo = _mm256_castps256_ps128(mul);
+        __m128 sum = _mm_add_ps(lo, hi);
+        sum = _mm_hadd_ps(sum, sum);
+        sum = _mm_hadd_ps(sum, sum);
+
+        float dot = _mm_cvtss_f32(sum) + plane.distance;
+
+        // Eğer chunk frustum dışındaysa çizme
+        if (dot < 0.0f)
             return false;
     }
     return true;
@@ -95,10 +111,10 @@ World::~World()
     }
 }
 
-// sadece oyuncunun pozisyonuna yakin olan chunklari uret.
 void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix)
 {
     pair<int, int> playerChunkCoord = calculateChunkCoord(playerPosition);
+    // Yeni frame için "görünür chunk" listesini sıfırlarız.
     newVisibleChunks.clear();
 
     // burda sadece x ekseni ve z(derinlik) ekseni boyunca chunk olusturuyoruz yani y ekseninde chunklar olusturmuyoruz.
@@ -117,6 +133,7 @@ void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix
             {
                 newVisibleChunks.insert(chunkCoord);
 
+                // eger chunk icerisinde yok ise
                 if (chunks.find(chunkCoord) == chunks.end())
                 {
                     // Cache'te varsa cache'ten al
@@ -201,7 +218,7 @@ void World::update(const vec3 &playerPosition, const mat4 &viewProjMatrix)
     generateWorld(playerPosition, viewProjMatrix);
     // artik gorunmeyen chunk varsa silinir
     destroyChunk();
-    // gorunmeyen block varsa silinir
+
     destroyBlock();
 }
 

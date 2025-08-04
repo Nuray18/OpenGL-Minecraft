@@ -1,12 +1,15 @@
 #pragma once
 #include "Chunk.h"
 #include "pair_hash.h"
+
 #include <map>
 #include <list>
 #include <unordered_set>
 #include <unordered_map>
 #include <functional> // bu specialization yazmak icindir
 #include <vector>
+#include <immintrin.h> // SSE/AVX komutları için(SIMD)
+
 #include <glm/gtc/matrix_access.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

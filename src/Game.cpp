@@ -377,7 +377,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
 
     world.update(playerPosition, viewProjMatrix); // yeni chunki olustur
 
-    world.render(shaderProgram, playerPosition, viewProjMatrix); // generate edilen dunyayi ekranda render et.
+    world.render(shaderProgram, viewProjMatrix); // generate edilen dunyayi ekranda render et.
 
     SDL_GL_SwapWindow(window);
 }
