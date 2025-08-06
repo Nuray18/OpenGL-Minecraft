@@ -1,16 +1,9 @@
 #include "headers/Chunk.h"
 #include "headers/World.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glad/glad.h> // OpenGL fonksiyonları için
-#include <iostream>
+
+// eger yuzeye bitisik baska bir yuzey var ise o zaman current yuzey ve ona yapisik olan yuzey silinirler
 
 using namespace std;
-
-// extern GLuint VAO;
-// extern GLuint shaderProgram;
-// extern GLuint texture1;
-// extern int vertexSize; // float sayısı, setupOpenGL'de ayarlanıyor
 
 Chunk::Chunk(int chunkX, int chunkZ)
     : chunkX(chunkX), chunkZ(chunkZ), vertexSize(0)
@@ -21,7 +14,16 @@ Chunk::Chunk(int chunkX, int chunkZ)
 
 Chunk::~Chunk()
 {
-    // Kaynak temizleme işlemleri gerekirse buraya
+    if (VBO)
+    {
+        glDeleteBuffers(1, &VBO);
+        VBO = 0;
+    }
+    if (VAO)
+    {
+        glDeleteVertexArrays(1, &VAO);
+        VAO = 0;
+    }
 }
 
 void Chunk::generate()
@@ -33,6 +35,10 @@ void Chunk::generate()
 void Chunk::generateTerrain()
 // burda biz hava ile diger bloklar arasinda ayrim yapiyoruz
 {
+    float noiseScale = 0.005f; // noise frekansi (daha kucuk = daha genis tepeler)
+    int heightScale = 20;      // dag yuksekligi
+    int baseHeight = 8;        // deniz seviyesi
+
     // Örnek: basit düz dünya
     for (int x = 0; x < CHUNK_WIDTH; ++x)
     {
@@ -42,15 +48,36 @@ void Chunk::generateTerrain()
             int worldX = chunkX * CHUNK_WIDTH + x;
             int worldZ = chunkZ * CHUNK_DEPTH + z;
 
-            // Noise for the world
-            int height = (sin(worldX * 0.01) + cos(worldZ * 0.1)) * 4 + 8; // 4 ile 13 arasi bir deger.
+            // Simplex Noise (daha dogal arazi)
+            float noiseValue = simplex(vec2(worldX * noiseScale, worldZ * noiseScale));
+
+            // -1 ile 1 arasindaki degeri 0-1 arasina cevirir
+            noiseValue = (noiseValue + 1.0f) * 0.5f;
+
+            // baseHeight needs to be greater then height sometimes so that we can have water block.
+            int height = baseHeight + static_cast<int>(floorf((noiseValue - 0.5f) * heightScale));
 
             for (int y = 0; y < CHUNK_HEIGHT; ++y)
             {
-                if (y <= height)
-                    blocks[x][y][z] = 1; // Toprak/taş gibi bir şey
-                else
-                    blocks[x][y][z] = 0; // Hava
+                if (y > height)
+                {
+                    // so the problem was that the baseHeight was always smaller than the height that is why the if's were imposible.
+                    if (y <= baseHeight)
+                        blocks[x][y][z] = BlockType::Water; // Deniz seviyesi altını suyla doldur
+                    else
+                        blocks[x][y][z] = BlockType::Air; // Deniz seviyesinin üstü hava
+                }
+                else if (y == height) // yüzey
+                {
+                    if (height <= baseHeight + 1)
+                        blocks[x][y][z] = BlockType::Sand;
+                    else
+                        blocks[x][y][z] = BlockType::Grass;
+                }
+                else // y < height, yani alt katman
+                {
+                    blocks[x][y][z] = BlockType::Air;
+                }
             }
         }
     }
@@ -60,34 +87,68 @@ void Chunk::generateMesh()
 {
     vector<float> vertices;
 
+    // Komşu chunk'ları al
+    Chunk *leftChunk = world->getChunk(chunkX - 1, chunkZ);
+    Chunk *rightChunk = world->getChunk(chunkX + 1, chunkZ);
+    Chunk *frontChunk = world->getChunk(chunkX, chunkZ - 1);
+    Chunk *backChunk = world->getChunk(chunkX, chunkZ + 1);
+
+    int waterCount = 0;
     for (int x = 0; x < CHUNK_WIDTH; x++)
     {
         for (int y = 0; y < CHUNK_HEIGHT; y++)
         {
             for (int z = 0; z < CHUNK_DEPTH; z++)
             {
-                int block = getBlock(x, y, z);
-                if (block == 0) // hava ise skip
+                if (blocks[x][y][z] == BlockType::Water)
+                    waterCount++;
+
+                BlockType block = getBlock(x, y, z);
+                if (block == BlockType::Air) // hava ise skip
                     continue;
 
-                bool topVisible = (y + 1 >= CHUNK_HEIGHT) || (getBlock(x, y + 1, z) == 0);
-                bool bottomVisible = (y - 1 < 0) || (getBlock(x, y - 1, z) == 0);
-                bool leftVisible = (x - 1 < 0) || (getBlock(x - 1, y, z) == 0);
-                bool rightVisible = (x + 1 >= CHUNK_WIDTH) || (getBlock(x + 1, y, z) == 0);
-                bool frontVisible = (z - 1 < 0) || (getBlock(x, y, z - 1) == 0);
-                bool backVisible = (z + 1 >= CHUNK_DEPTH) || (getBlock(x, y, z + 1) == 0);
+                // bunlar kendi chunklar icinden alabiliyoruz
+                bool topVisible = (y + 1 >= CHUNK_HEIGHT) || (getBlock(x, y + 1, z) == BlockType::Air);
+                bool bottomVisible = (y - 1 < 0) || (getBlock(x, y - 1, z) == BlockType::Air);
+
+                // burda ise komsu chunkta olabilir left ve diger yan kisimlar
+                bool leftVisible = (x - 1 < 0) || (getBlock(x - 1, y, z) == BlockType::Air);
+                bool rightVisible = (x + 1 >= CHUNK_WIDTH) || (getBlock(x + 1, y, z) == BlockType::Air);
+                bool frontVisible = (z - 1 < 0) || (getBlock(x, y, z - 1) == BlockType::Air);
+                bool backVisible = (z + 1 >= CHUNK_DEPTH) || (getBlock(x, y, z + 1) == BlockType::Air);
 
                 bool isCompletelyHidden =
                     !topVisible && !bottomVisible &&
                     !leftVisible && !rightVisible &&
                     !frontVisible && !backVisible;
 
-                // Her yüz için UV'leri al
-                UVRange BotUV = getUVRange(3, 1, 0);
-                UVRange MidUV = getUVRange(3, 1, 1);
-                UVRange topUV = getUVRange(3, 1, 2);
-
                 float debugFlag = isCompletelyHidden ? 1.0f : 0.0f;
+
+                // Her yüz için UV'leri al
+                UVRange BotUV = getUVRange(3, 3, block, 0);
+                UVRange MidUV = getUVRange(3, 3, block, 1);
+                UVRange topUV = getUVRange(3, 3, block, 2);
+
+                // Checking for water first
+                if (block == BlockType::Water)
+                {
+                    bool waterSurfaceVisible = (y + 1 >= CHUNK_HEIGHT) || (getBlock(x, y + 1, z) == BlockType::Air);
+
+                    if (waterSurfaceVisible)
+                    {
+                        // sadece üst yüzey çiz (topFace)
+                        float topFace[] = {
+                            x + -0.5f, y + 0.5f, z + -0.5f, topUV.uMin, topUV.vMax, debugFlag,
+                            x + 0.5f, y + 0.5f, z + -0.5f, topUV.uMax, topUV.vMax, debugFlag,
+                            x + 0.5f, y + 0.5f, z + 0.5f, topUV.uMax, topUV.vMin, debugFlag,
+                            x + 0.5f, y + 0.5f, z + 0.5f, topUV.uMax, topUV.vMin, debugFlag,
+                            x + -0.5f, y + 0.5f, z + 0.5f, topUV.uMin, topUV.vMin, debugFlag,
+                            x + -0.5f, y + 0.5f, z + -0.5f, topUV.uMin, topUV.vMax, debugFlag};
+                        vertices.insert(vertices.end(), std::begin(topFace), std::end(topFace));
+                    }
+
+                    continue; // water için diğer yüzleri çizme
+                }
 
                 if (frontVisible)
                 {
@@ -170,6 +231,8 @@ void Chunk::generateMesh()
         }
     }
 
+    cout << "Chunk'da Water sayisi: " << waterCount << endl;
+
     if (vertices.empty())
     {
         vertexSize = 0;
@@ -211,6 +274,8 @@ void Chunk::update()
 
 void Chunk::render(unsigned int shaderProgram)
 {
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     if (vertexSize == 0)
         return; // Çizilecek vertex yok
 
@@ -226,14 +291,14 @@ void Chunk::render(unsigned int shaderProgram)
     glBindVertexArray(0);
 }
 
-int Chunk::getBlock(int x, int y, int z) const
+BlockType Chunk::getBlock(int x, int y, int z) const
 {
     if (x < 0 || x >= CHUNK_WIDTH || y < 0 || y >= CHUNK_HEIGHT || z < 0 || z >= CHUNK_DEPTH)
-        return -1;
+        return BlockType::Air; // gecersiz ise bos block olan Air gonderilir, func turu BlockType olmadan once -1 donuyordu int olarak
     return blocks[x][y][z];
 }
 
-void Chunk::setBlock(int x, int y, int z, int blockID)
+void Chunk::setBlock(int x, int y, int z, BlockType blockID)
 {
     if (x < 0 || x >= CHUNK_WIDTH || y < 0 || y >= CHUNK_HEIGHT || z < 0 || z >= CHUNK_DEPTH)
         return;
@@ -250,16 +315,31 @@ int Chunk::randNoice(int min, int max)
     return min + rand() % (max - min + 1);
 }
 
-UVRange Chunk::getUVRange(int rowSize, int colSize, int targetIndex)
+UVRange Chunk::getUVRange(int totalRows, int totalCols, BlockType blockType, int rowIndex)
 // in my texture atlas height is 48, width is 16. now totalRows means how many texture block we have in texture atlas, and rowIndex means which block we want to have with the index number of it.
 {
-    int currRow = targetIndex / colSize;
-    int currCol = targetIndex % colSize;
+    int blockColumn = 0;
+    switch (blockType)
+    {
+    case BlockType::Grass:
+        blockColumn = 0;
+        break;
+    case BlockType::Sand:
+        blockColumn = 1;
+        break;
+    case BlockType::Water:
+        blockColumn = 2;
+        break;
+    default:
+        blockColumn = 0;
+        break;
+    }
 
-    float uMin = 1.0f / colSize * currCol;
-    float uMax = 1.0f / colSize + uMin;
-    float vMin = 1.0f / rowSize * currRow;
-    float vMax = 1.0f / rowSize + vMin;
+    float uMin = (1.0f / totalCols) * blockColumn;
+    float uMax = uMin + (1.0f / totalCols);
+
+    float vMin = (1.0f / totalRows) * rowIndex;
+    float vMax = vMin + (1.0f / totalRows);
 
     return {uMin, uMax, vMin, vMax};
 }

@@ -99,8 +99,8 @@ bool Player::checkCollision(vec3 newPosition, const World &world)
                 int blockY = static_cast<int>(floor(y));
                 int blockZ = static_cast<int>(floor(z));
 
-                int block = world.getBlockGlobal(blockX, blockY, blockZ);
-                if (block != 0)
+                BlockType block = world.getBlockGlobal(blockX, blockY, blockZ);
+                if (block != BlockType::Air)
                 {
                     return true;
                 }

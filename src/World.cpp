@@ -1,8 +1,20 @@
 #include "headers/World.h"
 
 // Bu kodlarda iki tane culling kullandim:
-// 1. Frustum culling -> Bu kamerada gorunmeyen chunk'lari kontrol eder yani bir buyuk cunklar ile calisir.
+// 1. Frustum culling -> Bu kamerada gorunmeyen chunk'lari kontrol eder yani bir chunklar ile calisir.
 // 2. Occulusing culling -> Bu kamera da gorunen chunkin icindeki gorunmeyen blocklari kontrol eder.
+
+World::World()
+{
+}
+
+World::~World()
+{
+    for (auto &pair : chunks)
+    {
+        delete pair.second;
+    }
+}
 
 struct FrustumPlane
 {
@@ -97,18 +109,6 @@ bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const gl
             return false;
     }
     return true;
-}
-
-World::World()
-{
-}
-
-World::~World()
-{
-    for (auto &pair : chunks)
-    {
-        delete pair.second;
-    }
 }
 
 void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix)
@@ -213,17 +213,14 @@ pair<int, int> World::calculateChunkCoord(const vec3 &playerPosition)
 // mantiksal dunya (logic, pozisyon, veri)
 void World::update(const vec3 &playerPosition, const mat4 &viewProjMatrix)
 {
-    // eger chunk zaten gorunuyorsa -> dokunulmaz
-    // sadece yeni chunk gorunuyorsa -> yuklenir
-    generateWorld(playerPosition, viewProjMatrix);
-    // artik gorunmeyen chunk varsa silinir
-    destroyChunk();
+    generateWorld(playerPosition, viewProjMatrix); // gorunenleri belirle
+
+    destroyChunk(); // belirlenenler disindakileri sil.
 
     destroyBlock();
 }
 
-// var olan chunklari gpu'ya cizer
-// gorsel dunya(cizim, ekran)
+// gorsel dunya(cizim, ekran), var olan chunklari gpu'ya cizer, bu function sadece gorunen bulunduran chunksi cizer.
 void World::render(unsigned int shaderProgram, const mat4 &viewProjMatrix)
 {
     for (auto &pair : chunks)
@@ -236,15 +233,26 @@ void World::render(unsigned int shaderProgram, const mat4 &viewProjMatrix)
         if (!isAABBInFrustum(min, max, viewProjMatrix))
             continue;
 
-        // 🚀🧠 burda vector chunk istiyor parametre ben ise unordered map kullaniyorum.
         chunk->render(shaderProgram);
     }
 }
 
-int World::getBlockGlobal(int worldX, int y, int worldZ) const
+// bu ise chunkin kendisine point eden pointer donduruyor yani direk chunki aliyoruz.
+Chunk *World::getChunk(int chunkX, int chunkZ)
 {
-    int chunkX = worldX / CHUNK_WIDTH;
-    int chunkZ = worldZ / CHUNK_DEPTH;
+    auto it = chunks.find({chunkX, chunkZ});
+    if (it != chunks.end())
+    {
+        return it->second; // Chunk pointer döndür
+    }
+    return nullptr; // Chunk yoksa null döndür
+}
+
+// Direkt block döndürüyor.
+BlockType World::getBlockGlobal(int worldX, int y, int worldZ) const
+{
+    int chunkX = floor((float)worldX / CHUNK_WIDTH);
+    int chunkZ = floor((float)worldZ / CHUNK_DEPTH);
 
     int localX = worldX % CHUNK_WIDTH;
     int localZ = worldZ % CHUNK_DEPTH;
@@ -260,5 +268,5 @@ int World::getBlockGlobal(int worldX, int y, int worldZ) const
         return it->second->getBlock(localX, y, localZ);
     }
 
-    return 0; // chunk yoksa hava kabul
+    return BlockType::Air; // chunk yoksa hava kabul et.
 }

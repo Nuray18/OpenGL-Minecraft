@@ -24,12 +24,13 @@ public:
     void generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix);
     void render(unsigned int shaderProgram, const mat4 &viewProjMatrix);
     void update(const vec3 &playerPosition, const mat4 &viewProjMatrix);
-    bool isChuckLoaded(int chunkX, int chunkY);
+    // bool isChuckLoaded(int chunkX, int chunkY);
     void destroyChunk();
     void destroyBlock();
     pair<int, int> calculateChunkCoord(const vec3 &playerPosition);
     bool isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix);
-    int getBlockGlobal(int worldX, int y, int worldZ) const;
+    BlockType getBlockGlobal(int worldX, int y, int worldZ) const;
+    Chunk *getChunk(int chunkX, int chunkZ);
 
 private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z

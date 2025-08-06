@@ -206,7 +206,8 @@ void Game::setupOpenGL()
     checkShaderErrors();
     checkErrors();
 
-    texture1 = loadTexture("images/GrassBlock.png"); // birinci texture
+    texture1 = loadTexture("images/Blocks.png"); // birinci
+
     // FPS counter board
     textRenderer->LoadText("C:/Windows/Fonts/arial.ttf", 36);
 }
@@ -279,7 +280,7 @@ void Game::gameLoop()
 
         // her frame
         float instantFPS = 1.0f / deltaTime;
-        std::cout << "Instant FPS: " << instantFPS << std::endl;
+        // std::cout << "Instant FPS: " << instantFPS << std::endl;
 
         while (SDL_PollEvent(&event))
         {
@@ -373,7 +374,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
 
     vec3 playerPosition = player.getPosition();
-    player.getPlayerPos();
+    // player.getPlayerPos();
 
     world.update(playerPosition, viewProjMatrix); // yeni chunki olustur
 
