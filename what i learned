@@ -1,0 +1,16 @@
+Daily Dev Log – 7-August-2025
+
+Today I worked on the generateMesh function, focusing on the visibility logic for block faces.
+I attempted to fix the issue where extra side faces were being rendered at the edges of chunks.
+
+To solve this, I accessed neighboring chunks (leftChunk, rightChunk, frontChunk, and backChunk) from the world object, so I could check adjacent block data and properly determine whether side faces should be rendered.
+
+However, I kept encountering crashes during execution. After some debugging using std::cout outputs, I discovered that the world pointer inside the chunk was null. This was causing the access to neighboring chunks to fail.
+
+To resolve it, I passed the world pointer as a parameter to the chunk constructor, and when creating a new chunk inside the World class, I passed this as the reference.
+
+Now the game no longer crashes, and I can safely access neighboring chunk data for proper mesh generation.
+
+ However, I still have side faces at the edges of the chunk. Gonna fix tommorrow.
+
+End of log.
