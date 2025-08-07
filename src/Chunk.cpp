@@ -5,8 +5,8 @@
 
 using namespace std;
 
-Chunk::Chunk(int chunkX, int chunkZ)
-    : chunkX(chunkX), chunkZ(chunkZ), vertexSize(0)
+Chunk::Chunk(int chunkX, int chunkZ, World *world)
+    : chunkX(chunkX), chunkZ(chunkZ), vertexSize(0), world(world)
 {
     generate();
     cout << "Bu func calisti" << endl;
@@ -85,6 +85,15 @@ void Chunk::generateTerrain()
 
 void Chunk::generateMesh()
 {
+    if (world)
+    {
+        cout << "world var" << endl;
+    }
+    else
+    {
+        cout << "world is NULL" << endl;
+    }
+
     vector<float> vertices;
 
     Chunk *leftChunk = world->getChunk(chunkX - 1, chunkZ);

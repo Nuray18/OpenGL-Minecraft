@@ -26,7 +26,7 @@ struct UVRange
 class Chunk
 {
 public:
-    Chunk(int chunkX, int chunkZ);
+    Chunk(int chunkX, int chunkZ, World *world);
     ~Chunk();
     // private olan generateTerrain funcunu cagirir.
     void generate(); // Chunk verisini üretir

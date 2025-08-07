@@ -153,7 +153,7 @@ void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix
                     // burda RAM'a gideriz ve yeni olustururuz
                     {
                         // Ne aktifte ne de cache'te varsa yeni oluştur
-                        chunks[chunkCoord] = new Chunk(chunkCoord.first, chunkCoord.second);
+                        chunks[chunkCoord] = new Chunk(chunkCoord.first, chunkCoord.second, this);
                     }
                 }
                 // ✅ Böylece aynı chunk birkaç saniye içinde tekrar görünürse, yeniden generate etmek yerine cache’ten alıyoruz.
