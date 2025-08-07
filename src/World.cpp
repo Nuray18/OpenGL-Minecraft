@@ -243,8 +243,18 @@ Chunk *World::getChunk(int chunkX, int chunkZ)
     auto it = chunks.find({chunkX, chunkZ});
     if (it != chunks.end())
     {
+        cout << "chunks icinde var" << endl;
         return it->second; // Chunk pointer döndür
     }
+
+    auto cacheIt = chunkCache.find({chunkX, chunkZ});
+    if (cacheIt != chunkCache.end())
+    {
+        cout << "Cache icinde var" << endl;
+        return cacheIt->second;
+    }
+
+    cout << "Null donderildi bu chunk hic yok" << endl;
     return nullptr; // Chunk yoksa null döndür
 }
 
@@ -269,4 +279,9 @@ BlockType World::getBlockGlobal(int worldX, int y, int worldZ) const
     }
 
     return BlockType::Air; // chunk yoksa hava kabul et.
+}
+
+bool World::isChunkActive(int chunkX, int chunkZ)
+{
+    return chunks.find({chunkX, chunkZ}) != chunks.end();
 }

@@ -87,7 +87,6 @@ void Chunk::generateMesh()
 {
     vector<float> vertices;
 
-    // Komşu chunk'ları al
     Chunk *leftChunk = world->getChunk(chunkX - 1, chunkZ);
     Chunk *rightChunk = world->getChunk(chunkX + 1, chunkZ);
     Chunk *frontChunk = world->getChunk(chunkX, chunkZ - 1);
@@ -107,15 +106,102 @@ void Chunk::generateMesh()
                 if (block == BlockType::Air) // hava ise skip
                     continue;
 
-                // bunlar kendi chunklar icinden alabiliyoruz
-                bool topVisible = (y + 1 >= CHUNK_HEIGHT) || (getBlock(x, y + 1, z) == BlockType::Air);
-                bool bottomVisible = (y - 1 < 0) || (getBlock(x, y - 1, z) == BlockType::Air);
+                bool topVisible;
+                if (y == CHUNK_HEIGHT - 1)
+                    topVisible = true; // üstte dünya yoksa görünür
+                else
+                    topVisible = getBlock(x, y + 1, z) == BlockType::Air;
+
+                bool bottomVisible;
+                if (y == 0)
+                    bottomVisible = true; // en dipteyse görünür olabilir (veya false da denebilir, tercihe bağlı)
+                else
+                    bottomVisible = getBlock(x, y - 1, z) == BlockType::Air;
 
                 // burda ise komsu chunkta olabilir left ve diger yan kisimlar
-                bool leftVisible = (x - 1 < 0) || (getBlock(x - 1, y, z) == BlockType::Air);
-                bool rightVisible = (x + 1 >= CHUNK_WIDTH) || (getBlock(x + 1, y, z) == BlockType::Air);
-                bool frontVisible = (z - 1 < 0) || (getBlock(x, y, z - 1) == BlockType::Air);
-                bool backVisible = (z + 1 >= CHUNK_DEPTH) || (getBlock(x, y, z + 1) == BlockType::Air);
+                bool leftVisible;
+                if (x == 0)
+                {                                                                                // Chunk sınırındaysa
+                    if (leftChunk && world->isChunkActive(leftChunk->chunkX, leftChunk->chunkZ)) // eger leftChunk var ise ve active ise
+                    {
+                        leftVisible = leftChunk->getBlock(CHUNK_WIDTH - 1, y, z) == BlockType::Air; // bos ise true, dolu ise false.
+                    }
+                    else if (leftChunk)
+                    {
+                        leftVisible = false;
+                    }
+                    else
+                    {
+                        leftVisible = true;
+                    }
+                }
+                else // kendi icinde ise
+                {
+                    leftVisible = getBlock(x - 1, y, z) == BlockType::Air;
+                }
+
+                bool rightVisible;
+                if (x == CHUNK_WIDTH - 1)
+                {
+                    if (rightChunk && world->isChunkActive(rightChunk->chunkX, rightChunk->chunkZ)) // eger leftChunk var ise ve active ise
+                    {
+                        rightVisible = rightChunk->getBlock(0, y, z) == BlockType::Air;
+                    }
+                    else if (rightChunk)
+                    {
+                        rightVisible = false;
+                    }
+                    else
+                    {
+                        rightVisible = true;
+                    }
+                }
+                else
+                {
+                    rightVisible = getBlock(x + 1, y, z) == BlockType::Air;
+                }
+
+                bool frontVisible;
+                if (z == 0)
+                {
+                    if (frontChunk && world->isChunkActive(frontChunk->chunkX, frontChunk->chunkZ))
+                    {
+                        frontVisible = frontChunk->getBlock(x, y, CHUNK_DEPTH - 1) == BlockType::Air;
+                    }
+                    else if (frontChunk)
+                    {
+                        frontVisible = false;
+                    }
+                    else
+                    {
+                        frontVisible - true;
+                    }
+                }
+                else
+                {
+                    frontVisible = getBlock(x, y, z - 1) == BlockType::Air;
+                }
+
+                bool backVisible;
+                if (z == CHUNK_DEPTH - 1)
+                {
+                    if (backChunk && world->isChunkActive(backChunk->chunkX, backChunk->chunkZ))
+                    {
+                        backVisible = backChunk->getBlock(x, y, 0) == BlockType::Air;
+                    }
+                    else if (backChunk)
+                    {
+                        backVisible = false;
+                    }
+                    else
+                    {
+                        backVisible = true;
+                    }
+                }
+                else
+                {
+                    backVisible = getBlock(x, y, z + 1) == BlockType::Air;
+                }
 
                 bool isCompletelyHidden =
                     !topVisible && !bottomVisible &&
