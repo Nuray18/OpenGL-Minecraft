@@ -31,6 +31,7 @@ public:
     bool isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix);
     BlockType getBlockGlobal(int worldX, int y, int worldZ) const;
     Chunk *getChunk(int chunkX, int chunkZ);
+    Chunk *getCacheChunk(int chunkX, int chunkZ);
     bool isChunkActive(int chunkX, int chunkZ);
 
 private:

@@ -14,3 +14,34 @@ Now the game no longer crashes, and I can safely access neighboring chunk data f
  However, I still have side faces at the edges of the chunk. Gonna fix tommorrow.
 
 End of log.
+
+🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠
+
+Daily Dev Log - 12-august-2025
+
+Today, I worked on rendering the side faces and managed to fix that issue. However, a new problem arose: some side faces inside the chunks still weren’t rendering.
+Because of this, I spent a lot of time working on the generateMesh function, tweaking the if-else conditions and analyzing the results.
+Later, I realized that inside the generateTerrain function, I was assigning the Air type to parts below a certain Y value, which I suspected was causing the problems.
+To address this, I added a dirt block and placed dirt blocks below that Y value. However, in the game, the dirt blocks still didn’t show up, and the area beneath the top blocks of my world remained empty.
+I wasn’t able to solve this problem within about three hours today, so I will continue working on it tomorrow.
+
+🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠🧠
+
+Daily Dev Log – 19-August-2025
+
+While working on generateTerrain, I noticed that setting the else branch to dirt didn’t render the inner faces,
+even though dirt exists in the texture atlas. However, when I used air instead, sand blocks under water became visible.
+This showed that the problem was specific to dirt.
+
+The issue was caused by deleting faces around water, including those facing water, which should actually be rendered.
+To fix this, I added an isTransparent function next to the air check in generateMesh. This function checks two block types: air and water.
+
+I also discovered a syntax error that was preventing dirt from rendering properly. After fixing it, dirt rendered as expected.
+
+Improved mesh optimization: when two blocks’ top and bottom faces meet, these faces are no longer drawn unnecessarily.
+This prevents redundant geometry when blocks are stacked.
+
+Implemented stone as the bottom layer, dirt above it, and grass on top, ensuring the correct layering of terrain blocks.
+
+Next step: create colliders for all blocks.
+

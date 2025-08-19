@@ -37,6 +37,7 @@ public:
     int randNoice(int min, int max);
     ivec2 getChunkPosition() const;
     UVRange getUVRange(int totalRows, int totalCols, BlockType blockType, int rowIndex);
+    bool isTransparent(BlockType type);
 
     int chunkX, chunkZ; // Chunk pozisyonu (dünya koordinatında)
 private:

@@ -74,9 +74,13 @@ void Chunk::generateTerrain()
                     else
                         blocks[x][y][z] = BlockType::Grass;
                 }
-                else // y < height, yani alt katman
+                else if (y >= height - 3)
                 {
-                    blocks[x][y][z] = BlockType::Air;
+                    blocks[x][y][z] = BlockType::Dirt;
+                }
+                else
+                {
+                    blocks[x][y][z] = BlockType::Stone;
                 }
             }
         }
@@ -85,11 +89,7 @@ void Chunk::generateTerrain()
 
 void Chunk::generateMesh()
 {
-    if (world)
-    {
-        cout << "world var" << endl;
-    }
-    else
+    if (!world)
     {
         cout << "world is NULL" << endl;
     }
@@ -97,8 +97,11 @@ void Chunk::generateMesh()
     vector<float> vertices;
 
     Chunk *leftChunk = world->getChunk(chunkX - 1, chunkZ);
+
     Chunk *rightChunk = world->getChunk(chunkX + 1, chunkZ);
+
     Chunk *frontChunk = world->getChunk(chunkX, chunkZ - 1);
+
     Chunk *backChunk = world->getChunk(chunkX, chunkZ + 1);
 
     int waterCount = 0;
@@ -117,101 +120,94 @@ void Chunk::generateMesh()
 
                 bool topVisible;
                 if (y == CHUNK_HEIGHT - 1)
+                {
                     topVisible = true; // üstte dünya yoksa görünür
+                }
                 else
-                    topVisible = getBlock(x, y + 1, z) == BlockType::Air;
+                {
+                    topVisible = isTransparent(getBlock(x, y + 1, z));
+                }
 
                 bool bottomVisible;
                 if (y == 0)
-                    bottomVisible = true; // en dipteyse görünür olabilir (veya false da denebilir, tercihe bağlı)
+                {
+                    bottomVisible = true;
+                }
                 else
-                    bottomVisible = getBlock(x, y - 1, z) == BlockType::Air;
+                {
+                    bottomVisible = isTransparent(getBlock(x, y - 1, z));
+                }
 
                 // burda ise komsu chunkta olabilir left ve diger yan kisimlar
                 bool leftVisible;
                 if (x == 0)
-                {                                                                                // Chunk sınırındaysa
-                    if (leftChunk && world->isChunkActive(leftChunk->chunkX, leftChunk->chunkZ)) // eger leftChunk var ise ve active ise
+                { // Chunk sınırındaysa
+                    if (leftChunk)
                     {
                         leftVisible = leftChunk->getBlock(CHUNK_WIDTH - 1, y, z) == BlockType::Air; // bos ise true, dolu ise false.
                     }
-                    else if (leftChunk)
-                    {
-                        leftVisible = false;
-                    }
                     else
                     {
-                        leftVisible = true;
+                        leftVisible = false;
                     }
                 }
                 else // kendi icinde ise
                 {
-                    leftVisible = getBlock(x - 1, y, z) == BlockType::Air;
+                    leftVisible = isTransparent(getBlock(x - 1, y, z));
                 }
 
                 bool rightVisible;
                 if (x == CHUNK_WIDTH - 1)
                 {
-                    if (rightChunk && world->isChunkActive(rightChunk->chunkX, rightChunk->chunkZ)) // eger leftChunk var ise ve active ise
+                    if (rightChunk) // eger leftChunk var ise ve active ise
                     {
                         rightVisible = rightChunk->getBlock(0, y, z) == BlockType::Air;
                     }
-                    else if (rightChunk)
-                    {
-                        rightVisible = false;
-                    }
                     else
                     {
-                        rightVisible = true;
+                        rightVisible = false;
                     }
                 }
                 else
                 {
-                    rightVisible = getBlock(x + 1, y, z) == BlockType::Air;
+                    rightVisible = isTransparent(getBlock(x + 1, y, z));
                 }
 
                 bool frontVisible;
                 if (z == 0)
                 {
-                    if (frontChunk && world->isChunkActive(frontChunk->chunkX, frontChunk->chunkZ))
+                    if (frontChunk)
                     {
                         frontVisible = frontChunk->getBlock(x, y, CHUNK_DEPTH - 1) == BlockType::Air;
                     }
-                    else if (frontChunk)
-                    {
-                        frontVisible = false;
-                    }
                     else
                     {
-                        frontVisible - true;
+                        frontVisible = false;
                     }
                 }
                 else
                 {
-                    frontVisible = getBlock(x, y, z - 1) == BlockType::Air;
+                    frontVisible = isTransparent(getBlock(x, y, z - 1));
                 }
 
                 bool backVisible;
                 if (z == CHUNK_DEPTH - 1)
                 {
-                    if (backChunk && world->isChunkActive(backChunk->chunkX, backChunk->chunkZ))
+                    if (backChunk)
                     {
                         backVisible = backChunk->getBlock(x, y, 0) == BlockType::Air;
                     }
-                    else if (backChunk)
-                    {
-                        backVisible = false;
-                    }
                     else
                     {
-                        backVisible = true;
+                        backVisible = false;
                     }
                 }
                 else
                 {
-                    backVisible = getBlock(x, y, z + 1) == BlockType::Air;
+                    backVisible = isTransparent(getBlock(x, y, z + 1));
                 }
 
+                // eger blockun her yonu kapali ise
                 bool isCompletelyHidden =
                     !topVisible && !bottomVisible &&
                     !leftVisible && !rightVisible &&
@@ -219,10 +215,14 @@ void Chunk::generateMesh()
 
                 float debugFlag = isCompletelyHidden ? 1.0f : 0.0f;
 
+                if (!isTransparent(block) && !isCompletelyHidden)
+                {
+                }
+
                 // Her yüz için UV'leri al
-                UVRange BotUV = getUVRange(3, 3, block, 0);
-                UVRange MidUV = getUVRange(3, 3, block, 1);
-                UVRange topUV = getUVRange(3, 3, block, 2);
+                UVRange BotUV = getUVRange(3, 5, block, 0);
+                UVRange MidUV = getUVRange(3, 5, block, 1);
+                UVRange topUV = getUVRange(3, 5, block, 2);
 
                 // Checking for water first
                 if (block == BlockType::Water)
@@ -362,6 +362,11 @@ void Chunk::generateMesh()
     glBindVertexArray(0);
 }
 
+bool Chunk::isTransparent(BlockType type)
+{
+    return type == BlockType::Air || type == BlockType::Water;
+}
+
 void Chunk::update()
 {
     // Chunk içeriğini güncelle (örneğin mesh oluşturma)
@@ -424,6 +429,12 @@ UVRange Chunk::getUVRange(int totalRows, int totalCols, BlockType blockType, int
         break;
     case BlockType::Water:
         blockColumn = 2;
+        break;
+    case BlockType::Dirt:
+        blockColumn = 3;
+        break;
+    case BlockType::Stone:
+        blockColumn = 4;
         break;
     default:
         blockColumn = 0;
