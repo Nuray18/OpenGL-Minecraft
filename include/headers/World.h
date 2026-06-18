@@ -1,6 +1,6 @@
 #pragma once
-#include "Chunk.h"
 #include "pair_hash.h"
+#include "Block.h"
 
 #include <map>
 #include <list>
@@ -15,6 +15,8 @@
 
 using namespace std;
 using namespace glm;
+
+class Chunk; // Forward declaration of the Chunk class
 
 class World
 {

@@ -1,4 +1,5 @@
 #include "headers/World.h"
+#include "headers/Chunk.h"
 
 // Bu kodlarda iki tane culling kullandim:
 // 1. Frustum culling -> Bu kamerada gorunmeyen chunk'lari kontrol eder yani chunklar ile calisir.

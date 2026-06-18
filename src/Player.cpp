@@ -1,15 +1,17 @@
 #include "headers/Player.h"
+#include "headers/World.h"
+#include "headers/Camera.h"
 
 Player::Player(vec3 startPosition)
 {
     position = startPosition;
+    // camera = startPosition;
     height = 1.75f;
     width = 0.3f;
     velocityY = 0.0f;
     gravity = -9.81f;
     jumpStrength = 5.0f;
     isGrounded = true;
-    camera = startPosition;
     flightMode = false; // ✨ default olarak normal mod
 }
 

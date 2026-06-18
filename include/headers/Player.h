@@ -1,11 +1,12 @@
 #pragma once
 #include "headers/Camera.h"
-#include "headers/World.h"
 #include "glm/glm.hpp"
 #include <iostream>
 
 using namespace glm;
 using namespace std;
+
+class World; // Forward declaration of the World class
 
 class Player
 {
