@@ -28,12 +28,12 @@ private:
     float velocityY;
     float gravity;
     float jumpStrength;
-    bool isGrounded;
 
+    bool isGrounded;
     bool flightMode;
 
     float height; // player boyu.
     float width;  // player genisligi
 
-    Camera camera;
+    Camera camera; // playerin camerasi onun icin ozel olan yani playere ait olan camera olusturuyoruz
 };

@@ -31,6 +31,7 @@ void Player::update(vec3 movementDirection, float deltaTime)
         camera.processKeyboard(moveDir, deltaTime * speed);
     }
 
+    // gravity and flying mode
     if (!flightMode)
     {
         // First Person mod: gravity uygulanır

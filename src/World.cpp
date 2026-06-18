@@ -1,7 +1,7 @@
 #include "headers/World.h"
 
 // Bu kodlarda iki tane culling kullandim:
-// 1. Frustum culling -> Bu kamerada gorunmeyen chunk'lari kontrol eder yani bir chunklar ile calisir.
+// 1. Frustum culling -> Bu kamerada gorunmeyen chunk'lari kontrol eder yani chunklar ile calisir.
 // 2. Occulusing culling -> Bu kamera da gorunen chunkin icindeki gorunmeyen blocklari kontrol eder.
 
 World::World()
@@ -75,6 +75,9 @@ vector<FrustumPlane> extractFrustumPlanes(const glm::mat4 &m)
 }
 
 // kamera gorus acisinda olan veya olmayan chunk lari kontrol eder eger disinda ise cizmez. (SIMD) AVX ile calisir. To calculate 8 floats at the same time
+// Mathematics of planes and AABBs
+// SIMD optimization with AVX
+// Early-out logic (returns false immediately if outside)
 bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix)
 {
     auto planes = extractFrustumPlanes(viewProjMatrix);
@@ -105,6 +108,7 @@ bool World::isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const gl
         float dot = _mm_cvtss_f32(sum) + plane.distance;
 
         // Eğer chunk frustum dışındaysa çizme
+        // Is this point on the visible side of the plane?
         if (dot < 0.0f)
             return false;
     }
@@ -230,14 +234,18 @@ void World::render(unsigned int shaderProgram, const mat4 &viewProjMatrix)
         vec3 min = vec3(chunk->chunkX * CHUNK_WIDTH, 0, chunk->chunkZ * CHUNK_DEPTH);
         vec3 max = min + vec3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
 
+        // gorunmuyor ise cizme
         if (!isAABBInFrustum(min, max, viewProjMatrix))
             continue;
 
+        // ciz
         chunk->render(shaderProgram);
     }
 }
 
 // bu ise chunkin kendisine point eden pointer donduruyor yani direk chunki aliyoruz.
+// ve kontrol ile bize chunk var ise chunki dondurur chunk memoryde hic yok ise null dondurur.
+// iki sekilde kontrol edilir ilk once chunks in icinde var mi ona bakilir eger yok ise ikinci olarak cachenin icinde var mi ona bakilir eger yok ise null doner.
 Chunk *World::getChunk(int chunkX, int chunkZ)
 {
     auto it = chunks.find({chunkX, chunkZ});
@@ -275,6 +283,7 @@ BlockType World::getBlockGlobal(int worldX, int y, int worldZ) const
     auto it = chunks.find({chunkX, chunkZ});
     if (it != chunks.end())
     {
+        // chunkin icindeki istenilern blocku alir
         return it->second->getBlock(localX, y, localZ);
     }
 

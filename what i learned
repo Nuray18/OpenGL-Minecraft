@@ -40,8 +40,10 @@ I also discovered a syntax error that was preventing dirt from rendering properl
 
 Improved mesh optimization: when two blocks’ top and bottom faces meet, these faces are no longer drawn unnecessarily.
 This prevents redundant geometry when blocks are stacked.
-
 Implemented stone as the bottom layer, dirt above it, and grass on top, ensuring the correct layering of terrain blocks.
-
+But side faces inside the chunks still doesn’t rendering. gonna fix it next time.
 Next step: create colliders for all blocks.
 
+gozukmeyen yuzeyleri de duzelttim oncede ben sadece frontChunk->getBlock(x, y, CHUNK_DEPTH - 1) bu kod ile belirli blcoklari kontrol ediyordum
+ancak simdi isTransparent(frontChunk->getBlock(x, y, CHUNK_DEPTH - 1)) functunu ile kontrol ediyorum ve bu su toprak ve diger yuzeylerin cizilmesi icin daha
+duzgun islem yapiyor ve sonuctada su altinda render edilmemis yuzeyler kalmiyor hem su altinda hemde su ustendeki bosluklar duzeldi.

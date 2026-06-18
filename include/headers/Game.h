@@ -3,14 +3,14 @@
 #include "headers/World.h"
 #include "headers/TextRenderer.h"
 
-#include "glm/glm.hpp"
+#include "glm/glm.hpp" // is the MATH needed for 3D world
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
 #include "sdl/SDL_ttf.h"
 #include "sdl/SDL.h"
 
-#include "glad/glad.h"
+#include "glad/glad.h" // GLAD is like a bridge in beetwen GPU and codes
 
 #include <iostream>
 #include <vector>
@@ -59,7 +59,7 @@ private:
     GameState gameState;
 
     glm::mat4 transform;
-    glm::vec3 cubePositions[10];
+    glm::vec3 cubePositions[10]; // You can think of a vec3 as a point in space
 
     bool isRunning;
 

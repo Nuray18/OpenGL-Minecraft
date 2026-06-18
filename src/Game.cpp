@@ -254,6 +254,9 @@ void Game::gameLoop()
     SDL_Event event;
     Uint32 lastTime = SDL_GetTicks(); // Son güncelleme zamanını al
 
+    // const float targetFPS = 60.0f;
+    // const float frameDelay = 1.0f / targetFPS;
+
     while (gameState != GameState::EXIT) // bu dogru oldugu surece kod calisir.
     {
         Uint64 currentTime = SDL_GetPerformanceCounter();
@@ -289,6 +292,13 @@ void Game::gameLoop()
         processInput(); // for moving with WASD keys
 
         render(); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
+
+        // float frameTime = (SDL_GetPerformanceCounter() - currentTime) / (float)SDL_GetPerformanceFrequency();
+
+        // if (frameTime < frameDelay)
+        //{
+        //     SDL_Delay((Uint32)((frameDelay - frameTime) * 1000.0f));
+        // }
     }
 }
 
@@ -339,7 +349,7 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
 {
     glClearColor(0.529f, 0.808f, 0.922f, 1.0f);
     glEnable(GL_DEPTH_TEST);                            // enables the depth so we can draw each sides in the true way
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame eger temizlenmez se bir onceki frameden kalan renk ve z degerleri current frame ile cakisir cunku temizlenmediler.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // then clear it for the next frame eger temizlenmez ise bir onceki frameden kalan renk ve z degerleri current frame ile cakisir cunku temizlenmediler.
 
     textRenderer->RenderText(fpsText, 10.0f, screenHeight - 30.0f, 0.8f, vec3(0.0f, 0.0f, 0.0f));
 

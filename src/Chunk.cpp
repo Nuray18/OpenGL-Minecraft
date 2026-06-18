@@ -144,11 +144,11 @@ void Chunk::generateMesh()
                 { // Chunk sınırındaysa
                     if (leftChunk)
                     {
-                        leftVisible = leftChunk->getBlock(CHUNK_WIDTH - 1, y, z) == BlockType::Air; // bos ise true, dolu ise false.
+                        leftVisible = isTransparent(leftChunk->getBlock(CHUNK_WIDTH - 1, y, z)); // bos ise true, dolu ise false.
                     }
                     else
                     {
-                        leftVisible = false;
+                        leftVisible = true;
                     }
                 }
                 else // kendi icinde ise
@@ -161,11 +161,11 @@ void Chunk::generateMesh()
                 {
                     if (rightChunk) // eger leftChunk var ise ve active ise
                     {
-                        rightVisible = rightChunk->getBlock(0, y, z) == BlockType::Air;
+                        rightVisible = isTransparent(rightChunk->getBlock(0, y, z));
                     }
                     else
                     {
-                        rightVisible = false;
+                        rightVisible = true;
                     }
                 }
                 else
@@ -178,11 +178,11 @@ void Chunk::generateMesh()
                 {
                     if (frontChunk)
                     {
-                        frontVisible = frontChunk->getBlock(x, y, CHUNK_DEPTH - 1) == BlockType::Air;
+                        frontVisible = isTransparent(frontChunk->getBlock(x, y, CHUNK_DEPTH - 1));
                     }
                     else
                     {
-                        frontVisible = false;
+                        frontVisible = true;
                     }
                 }
                 else
@@ -195,11 +195,11 @@ void Chunk::generateMesh()
                 {
                     if (backChunk)
                     {
-                        backVisible = backChunk->getBlock(x, y, 0) == BlockType::Air;
+                        backVisible = isTransparent(backChunk->getBlock(x, y, 0));
                     }
                     else
                     {
-                        backVisible = false;
+                        backVisible = true;
                     }
                 }
                 else
@@ -215,6 +215,7 @@ void Chunk::generateMesh()
 
                 float debugFlag = isCompletelyHidden ? 1.0f : 0.0f;
 
+                // collider
                 if (!isTransparent(block) && !isCompletelyHidden)
                 {
                 }
@@ -248,12 +249,42 @@ void Chunk::generateMesh()
                 if (frontVisible)
                 {
                     float frontFace[] = {
-                        x + -0.5f, y + -0.5f, z + -0.5f, MidUV.uMin, MidUV.vMin, debugFlag, // 0
-                        x + 0.5f, y + -0.5f, z + -0.5f, MidUV.uMax, MidUV.vMin, debugFlag,  // 1
-                        x + 0.5f, y + 0.5f, z + -0.5f, MidUV.uMax, MidUV.vMax, debugFlag,   // 2
-                        x + 0.5f, y + 0.5f, z + -0.5f, MidUV.uMax, MidUV.vMax, debugFlag,   // 3
-                        x + -0.5f, y + 0.5f, z + -0.5f, MidUV.uMin, MidUV.vMax, debugFlag,  // 4
-                        x + -0.5f, y + -0.5f, z + -0.5f, MidUV.uMin, MidUV.vMin, debugFlag, // 5
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMin,
+                        MidUV.vMin,
+                        debugFlag, // 0
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMin,
+                        debugFlag, // 1
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMax,
+                        debugFlag, // 2
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMax,
+                        debugFlag, // 3
+                        x + -0.5f,
+                        y + 0.5f,
+                        z + -0.5f,
+                        MidUV.uMin,
+                        MidUV.vMax,
+                        debugFlag, // 4
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMin,
+                        MidUV.vMin,
+                        debugFlag, // 5
                     };
                     vertices.insert(vertices.end(), std::begin(frontFace), std::end(frontFace));
                 }
@@ -261,12 +292,42 @@ void Chunk::generateMesh()
                 if (backVisible)
                 {
                     float backFace[] = {
-                        x + -0.5f, y + -0.5f, z + 0.5f, MidUV.uMin, MidUV.vMin, debugFlag, // 6
-                        x + 0.5f, y + -0.5f, z + 0.5f, MidUV.uMax, MidUV.vMin, debugFlag,  // 7
-                        x + 0.5f, y + 0.5f, z + 0.5f, MidUV.uMax, MidUV.vMax, debugFlag,   // 8
-                        x + 0.5f, y + 0.5f, z + 0.5f, MidUV.uMax, MidUV.vMax, debugFlag,   // 9
-                        x + -0.5f, y + 0.5f, z + 0.5f, MidUV.uMin, MidUV.vMax, debugFlag,  // 10
-                        x + -0.5f, y + -0.5f, z + 0.5f, MidUV.uMin, MidUV.vMin, debugFlag, // 11
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMin,
+                        debugFlag, // 6
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        MidUV.uMax,
+                        MidUV.vMin,
+                        debugFlag, // 7
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMax,
+                        MidUV.vMax,
+                        debugFlag, // 8
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMax,
+                        MidUV.vMax,
+                        debugFlag, // 9
+                        x + -0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMax,
+                        debugFlag, // 10
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMin,
+                        debugFlag, // 11
                     };
                     vertices.insert(vertices.end(), std::begin(backFace), std::end(backFace));
                 }
@@ -274,12 +335,42 @@ void Chunk::generateMesh()
                 if (leftVisible)
                 {
                     float leftFace[] = {
-                        x + -0.5f, y + 0.5f, z + 0.5f, MidUV.uMin, MidUV.vMax, debugFlag,   // 12
-                        x + -0.5f, y + 0.5f, z + -0.5f, MidUV.uMax, MidUV.vMax, debugFlag,  // 13
-                        x + -0.5f, y + -0.5f, z + -0.5f, MidUV.uMax, MidUV.vMin, debugFlag, // 14
-                        x + -0.5f, y + -0.5f, z + -0.5f, MidUV.uMax, MidUV.vMin, debugFlag, // 15
-                        x + -0.5f, y + -0.5f, z + 0.5f, MidUV.uMin, MidUV.vMin, debugFlag,  // 16
-                        x + -0.5f, y + 0.5f, z + 0.5f, MidUV.uMin, MidUV.vMax, debugFlag,   // 17
+                        x + -0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMax,
+                        debugFlag, // 12
+                        x + -0.5f,
+                        y + 0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMax,
+                        debugFlag, // 13
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMin,
+                        debugFlag, // 14
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMin,
+                        debugFlag, // 15
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMin,
+                        debugFlag, // 16
+                        x + -0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMax,
+                        debugFlag, // 17
                     };
                     vertices.insert(vertices.end(), std::begin(leftFace), std::end(leftFace));
                 }
@@ -287,12 +378,42 @@ void Chunk::generateMesh()
                 if (rightVisible)
                 {
                     float rightFace[] = {
-                        x + 0.5f, y + 0.5f, z + 0.5f, MidUV.uMin, MidUV.vMax, debugFlag,   // 18
-                        x + 0.5f, y + 0.5f, z + -0.5f, MidUV.uMax, MidUV.vMax, debugFlag,  // 19
-                        x + 0.5f, y + -0.5f, z + -0.5f, MidUV.uMax, MidUV.vMin, debugFlag, // 20
-                        x + 0.5f, y + -0.5f, z + -0.5f, MidUV.uMax, MidUV.vMin, debugFlag, // 21
-                        x + 0.5f, y + -0.5f, z + 0.5f, MidUV.uMin, MidUV.vMin, debugFlag,  // 22
-                        x + 0.5f, y + 0.5f, z + 0.5f, MidUV.uMin, MidUV.vMax, debugFlag,   // 23
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMax,
+                        debugFlag, // 18
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMax,
+                        debugFlag, // 19
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMin,
+                        debugFlag, // 20
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        MidUV.uMax,
+                        MidUV.vMin,
+                        debugFlag, // 21
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMin,
+                        debugFlag, // 22
+                        x + 0.5f,
+                        y + 0.5f,
+                        z + 0.5f,
+                        MidUV.uMin,
+                        MidUV.vMax,
+                        debugFlag, // 23
                     };
                     vertices.insert(vertices.end(), std::begin(rightFace), std::end(rightFace));
                 }
@@ -300,12 +421,42 @@ void Chunk::generateMesh()
                 if (bottomVisible)
                 {
                     float bottomFace[] = {
-                        x + -0.5f, y + -0.5f, z + -0.5f, BotUV.uMin, BotUV.vMax, debugFlag, // 24
-                        x + 0.5f, y + -0.5f, z + -0.5f, BotUV.uMax, BotUV.vMax, debugFlag,  // 25
-                        x + 0.5f, y + -0.5f, z + 0.5f, BotUV.uMax, BotUV.vMin, debugFlag,   // 26
-                        x + 0.5f, y + -0.5f, z + 0.5f, BotUV.uMax, BotUV.vMin, debugFlag,   // 27
-                        x + -0.5f, y + -0.5f, z + 0.5f, BotUV.uMin, BotUV.vMin, debugFlag,  // 28
-                        x + -0.5f, y + -0.5f, z + -0.5f, BotUV.uMin, BotUV.vMax, debugFlag, // 29
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        BotUV.uMin,
+                        BotUV.vMax,
+                        debugFlag, // 24
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        BotUV.uMax,
+                        BotUV.vMax,
+                        debugFlag, // 25
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        BotUV.uMax,
+                        BotUV.vMin,
+                        debugFlag, // 26
+                        x + 0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        BotUV.uMax,
+                        BotUV.vMin,
+                        debugFlag, // 27
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + 0.5f,
+                        BotUV.uMin,
+                        BotUV.vMin,
+                        debugFlag, // 28
+                        x + -0.5f,
+                        y + -0.5f,
+                        z + -0.5f,
+                        BotUV.uMin,
+                        BotUV.vMax,
+                        debugFlag, // 29
                     };
                     vertices.insert(vertices.end(), std::begin(bottomFace), std::end(bottomFace));
                 }
@@ -360,11 +511,6 @@ void Chunk::generateMesh()
 
     //  unenable it
     glBindVertexArray(0);
-}
-
-bool Chunk::isTransparent(BlockType type)
-{
-    return type == BlockType::Air || type == BlockType::Water;
 }
 
 void Chunk::update()
@@ -448,4 +594,9 @@ UVRange Chunk::getUVRange(int totalRows, int totalCols, BlockType blockType, int
     float vMax = vMin + (1.0f / totalRows);
 
     return {uMin, uMax, vMin, vMax};
+}
+
+bool Chunk::isTransparent(BlockType type)
+{
+    return type == BlockType::Air || type == BlockType::Water;
 }
