@@ -13,7 +13,7 @@ const float ZOOM = 45.0f;
 class Camera
 {
 public:
-    Camera(vec3 _position = vec3(0.0f, 0.0f, 0.0f), vec3 _up = vec3(0.0f, 1.0f, 0.0f), float _yaw = YAW, float _pitch = PITCH);
+    Camera();
 
     Camera(float _posX, float _posY, float _posZ, float _upX, float _upY, float _upZ, float _yaw, float _pitch);
 

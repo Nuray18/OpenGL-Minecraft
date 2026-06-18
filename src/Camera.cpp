@@ -1,15 +1,15 @@
 #include "headers/Camera.h" // bu yazim kendi yazdigim kodlar icin
 
-Camera::Camera(vec3 _position, vec3 _up, float _yaw, float _pitch)
+Camera::Camera()
 {
     front = vec3(0.0f, 0.0f, -1.0f);
     mouseSensitivity = SENSITIVITY;
     zoom = ZOOM;
 
-    position = _position;
-    worldUp = _up;
-    yaw = _yaw;
-    pitch = _pitch;
+    position = vec3(0.0f, 0.0f, 0.0f);
+    worldUp = vec3(0.0f, 1.0f, 0.0f);
+    yaw = YAW;
+    pitch = PITCH;
 
     updateCamera();
 }
