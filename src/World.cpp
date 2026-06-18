@@ -133,36 +133,32 @@ void World::generateWorld(const vec3 &playerPosition, const mat4 &viewProjMatrix
             vec3 min = vec3(chunkCoord.first * CHUNK_WIDTH, 0, chunkCoord.second * CHUNK_DEPTH);
             vec3 max = min + vec3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
 
-            // camera frustum icinde ise newVisibleChunks'in icine ekliyoruz
-            if (isAABBInFrustum(min, max, viewProjMatrix))
+            newVisibleChunks.insert(chunkCoord);
+
+            // eger chunk icerisinde yok ise
+            if (chunks.find(chunkCoord) == chunks.end())
             {
-                newVisibleChunks.insert(chunkCoord);
-
-                // eger chunk icerisinde yok ise
-                if (chunks.find(chunkCoord) == chunks.end())
+                // Cache'te varsa cache'ten al
+                auto cacheIt = chunkCache.find(chunkCoord);
+                // Burda cache icinde var ise RAM'a gitme ihtiyaci kalmaz
+                if (cacheIt != chunkCache.end())
                 {
-                    // Cache'te varsa cache'ten al
-                    auto cacheIt = chunkCache.find(chunkCoord);
-                    // Burda cache icinde var ise RAM'a gitme ihtiyaci kalmaz
-                    if (cacheIt != chunkCache.end())
-                    {
-                        // chunka ekle
-                        chunks[chunkCoord] = cacheIt->second;
+                    // chunka ekle
+                    chunks[chunkCoord] = cacheIt->second;
 
-                        // ekledikten sonra LRU'dan sil
-                        cacheOrder.erase(cacheMap[chunkCoord]);
-                        cacheMap.erase(chunkCoord);
-                        chunkCache.erase(cacheIt);
-                    }
-                    else
-                    // burda RAM'a gideriz ve yeni olustururuz
-                    {
-                        // Ne aktifte ne de cache'te varsa yeni oluştur
-                        chunks[chunkCoord] = new Chunk(chunkCoord.first, chunkCoord.second, this);
-                    }
+                    // ekledikten sonra LRU'dan sil
+                    cacheOrder.erase(cacheMap[chunkCoord]);
+                    cacheMap.erase(chunkCoord);
+                    chunkCache.erase(cacheIt);
                 }
-                // ✅ Böylece aynı chunk birkaç saniye içinde tekrar görünürse, yeniden generate etmek yerine cache’ten alıyoruz.
+                else
+                // burda RAM'a gideriz ve yeni olustururuz
+                {
+                    // Ne aktifte ne de cache'te varsa yeni oluştur
+                    chunks[chunkCoord] = new Chunk(chunkCoord.first, chunkCoord.second, this);
+                }
             }
+            // ✅ Böylece aynı chunk birkaç saniye içinde tekrar görünürse, yeniden generate etmek yerine cache’ten alıyoruz.
         }
     }
 }
