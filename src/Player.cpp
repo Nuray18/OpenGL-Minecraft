@@ -24,40 +24,53 @@ void Player::jump()
 
 void Player::update(vec3 movementDirection, float deltaTime)
 {
-    // 1️⃣ WASD yön hareketi varsa uygula
-    if (length(movementDirection) > 0.0f) // buradaki length functionu 0 dan farkli sayi var mi onu olcuyor.
+    vec3 forwardDir;
+    vec3 rightDir;
+
+    if (flightMode)
     {
-        vec3 moveDir = normalize(movementDirection);
-        camera.processKeyboard(moveDir, deltaTime * speed);
+        forwardDir = normalize(camera.front);
+        rightDir = normalize(camera.right);
+    }
+    else
+    {
+        forwardDir = normalize(
+            vec3(camera.front.x, 0.0f, camera.front.z));
+
+        rightDir = normalize(
+            cross(forwardDir, vec3(0.0f, 1.0f, 0.0f)));
     }
 
-    // gravity and flying mode
+    vec3 moveDir =
+        forwardDir * movementDirection.z +
+        rightDir * movementDirection.x;
+
+    // HAREKET KISMI
+    if (length(moveDir) > 0.0f)
+    {
+        moveDir = normalize(moveDir);
+        position += moveDir * speed * deltaTime;
+    }
+
+    // YERÇEKİMİ
     if (!flightMode)
     {
-        // First Person mod: gravity uygulanır
         velocityY += gravity * deltaTime;
         position.y += velocityY * deltaTime;
 
-        // yer siniri
         if (position.y <= 0.0f)
         {
             position.y = 0.0f;
             velocityY = 0.0f;
             isGrounded = true;
         }
-
-        // Kamera Y pozisyonunu oyuncunun başına göre ayarla
-        camera.position.y = position.y + height;
     }
     else
     {
-        // Free Fly mod: yerçekimi yok, kamera pozisyonu direkt alınır
-        position = camera.position;
+        velocityY = 0.0f;
     }
 
-    // X-Z pozisyonlarını kameradan al
-    position.x = camera.position.x;
-    position.z = camera.position.z;
+    camera.position = position + vec3(0.0f, height, 0.0f);
 }
 
 Camera &Player::getCamera()
