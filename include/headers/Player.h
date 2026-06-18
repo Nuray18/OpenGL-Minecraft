@@ -24,6 +24,10 @@ public:
     float speed = 10.0f;
 
 private:
+    void updateMovement(vec3 movementDirection, float deltaTime);
+    void updateGravity(float deltaTime);
+    void updateCamera();
+
     vec3 position;
     float velocityY;
     float gravity;

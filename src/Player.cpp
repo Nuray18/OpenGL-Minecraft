@@ -22,7 +22,7 @@ void Player::jump()
     }
 }
 
-void Player::update(vec3 movementDirection, float deltaTime)
+void Player::updateMovement(vec3 movementDirection, float deltaTime)
 {
     vec3 forwardDir;
     vec3 rightDir;
@@ -51,7 +51,10 @@ void Player::update(vec3 movementDirection, float deltaTime)
         moveDir = normalize(moveDir);
         position += moveDir * speed * deltaTime;
     }
+}
 
+void Player::updateGravity(float deltaTime)
+{
     // YERÇEKİMİ
     if (!flightMode)
     {
@@ -69,8 +72,18 @@ void Player::update(vec3 movementDirection, float deltaTime)
     {
         velocityY = 0.0f;
     }
+}
 
+void Player::updateCamera()
+{
     camera.position = position + vec3(0.0f, height, 0.0f);
+}
+
+void Player::update(vec3 movementDirection, float deltaTime)
+{
+    updateMovement(movementDirection, deltaTime);
+    updateGravity(deltaTime);
+    updateCamera();
 }
 
 Camera &Player::getCamera()
