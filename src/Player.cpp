@@ -5,7 +5,7 @@
 Player::Player(vec3 startPosition)
 {
     position = startPosition;
-    // camera = startPosition;
+    camera.position = startPosition;
     height = 1.75f;
     width = 0.3f;
     velocityY = 0.0f;
