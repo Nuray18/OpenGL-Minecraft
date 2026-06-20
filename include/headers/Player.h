@@ -16,21 +16,22 @@ class Player
 public:
     Player(vec3 startPosition);
 
-    void update(vec3 movementDirection, float deltaTime);
+    void update(vec3 movementDirection, float deltaTime, World &world);
     void jump();
     void getPlayerPos(); // this function is for debugging
+    void toggleFlightMode();
 
     Camera &getCamera();
 
     vec3 getPosition() const;
-    void toggleFlightMode();
 
     float speed = 10.0f;
 
 private:
-    void updateMovement(vec3 movementDirection, float deltaTime);
-    void updateGravity(float deltaTime);
+    void updateMovement(vec3 movementDirection, float deltaTime, World &world);
+    void updateGravity(float deltaTime, World &world);
     void updateCamera();
+    void updateCollider();
 
     vec3 position;
 

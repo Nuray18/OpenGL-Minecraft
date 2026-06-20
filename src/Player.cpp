@@ -24,7 +24,7 @@ void Player::jump()
     }
 }
 
-void Player::updateMovement(vec3 movementDirection, float deltaTime)
+void Player::updateMovement(vec3 movementDirection, float deltaTime, World &world)
 {
     vec3 forwardDir;
     vec3 rightDir;
@@ -51,11 +51,21 @@ void Player::updateMovement(vec3 movementDirection, float deltaTime)
     if (length(moveDir) > 0.0f)
     {
         moveDir = normalize(moveDir);
+        vec3 oldPosition = position;
+
         position += moveDir * speed * deltaTime;
+
+        updateCollider();
+
+        if (world.checkCollision(collider))
+        {
+            position = oldPosition;
+            updateCollider();
+        }
     }
 }
 
-void Player::updateGravity(float deltaTime)
+void Player::updateGravity(float deltaTime, World &world)
 {
     // YERÇEKİMİ
     if (!flightMode)
@@ -76,15 +86,38 @@ void Player::updateGravity(float deltaTime)
     }
 }
 
+void Player::updateCollider()
+{
+    // sol  = position.x - width
+    // sağ  = position.x + width
+
+    // alt  = position.y
+    // üst  = position.y + height
+
+    // ön   = position.z - width
+    // arka = position.z + width
+    vec3 min(
+        position.x - width,
+        position.y,
+        position.z - width);
+
+    vec3 max(
+        position.x + width,
+        position.y + height,
+        position.z + width);
+
+    collider.set(min, max);
+}
+
 void Player::updateCamera()
 {
     camera.position = position + vec3(0.0f, height, 0.0f);
 }
 
-void Player::update(vec3 movementDirection, float deltaTime)
+void Player::update(vec3 movementDirection, float deltaTime, World &world)
 {
-    updateMovement(movementDirection, deltaTime);
-    updateGravity(deltaTime);
+    updateMovement(movementDirection, deltaTime, world);
+    updateGravity(deltaTime, world);
     updateCamera();
 }
 
