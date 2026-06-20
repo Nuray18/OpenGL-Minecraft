@@ -70,19 +70,29 @@ void Player::updateGravity(float deltaTime, World &world)
     // YERÇEKİMİ
     if (!flightMode)
     {
+        float oldY = position.y;
+
         velocityY += gravity * deltaTime;
         position.y += velocityY * deltaTime;
 
-        if (position.y <= 0.0f)
+        updateCollider();
+
+        if (world.checkCollision(collider))
         {
-            position.y = 0.0f;
+            position.y = oldY;
             velocityY = 0.0f;
+            updateCollider();
             isGrounded = true;
+        }
+        else
+        {
+            isGrounded = false;
         }
     }
     else
     {
         velocityY = 0.0f;
+        isGrounded = false;
     }
 }
 
