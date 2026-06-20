@@ -1,6 +1,9 @@
 #pragma once
 #include "headers/Camera.h"
+#include "physics/AABB.h"
+
 #include "glm/glm.hpp"
+
 #include <iostream>
 
 using namespace glm;
@@ -15,12 +18,12 @@ public:
 
     void update(vec3 movementDirection, float deltaTime);
     void jump();
-    bool checkCollision(vec3 newPosition, const World &world);
+    void getPlayerPos(); // this function is for debugging
+
     Camera &getCamera();
-    void toggleFlightMode();
 
     vec3 getPosition() const;
-    void getPlayerPos(); // this function is for debugging
+    void toggleFlightMode();
 
     float speed = 10.0f;
 
@@ -30,6 +33,9 @@ private:
     void updateCamera();
 
     vec3 position;
+
+    AABB collider; // Playerin collision box'u
+
     float velocityY;
     float gravity;
     float jumpStrength;

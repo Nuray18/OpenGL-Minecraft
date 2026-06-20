@@ -1,4 +1,4 @@
-#include "headers/physics/collision.h"
+#include "headers/physics/Collision.h"
 
 bool Collision::CheckCollision(const AABB &a, const AABB &b)
 {

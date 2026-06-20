@@ -1,6 +1,7 @@
 #pragma once
 #include "pair_hash.h"
 #include "Block.h"
+#include "headers/physics/Collision.h"
 
 #include <map>
 #include <list>
@@ -29,12 +30,18 @@ public:
     // bool isChuckLoaded(int chunkX, int chunkY);
     void destroyChunk();
     void destroyBlock();
+
     pair<int, int> calculateChunkCoord(const vec3 &playerPosition);
-    bool isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix);
+
     BlockType getBlockGlobal(int worldX, int y, int worldZ) const;
+
     Chunk *getChunk(int chunkX, int chunkZ);
     Chunk *getCacheChunk(int chunkX, int chunkZ);
+
     bool isChunkActive(int chunkX, int chunkZ);
+    bool isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix);
+    bool isSolid(BlockType type) const;
+    bool checkCollision(const AABB &playerBox);
 
 private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z

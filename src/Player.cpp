@@ -116,6 +116,7 @@ void Player::getPlayerPos()
     cout << x << " " << y << " " << z << endl;
 }
 
+/*
 bool Player::checkCollision(vec3 newPosition, const World &world)
 {
     for (float x = newPosition.x - width; x <= newPosition.x + width; x += 1.0f)
@@ -138,3 +139,4 @@ bool Player::checkCollision(vec3 newPosition, const World &world)
     }
     return false;
 }
+*/

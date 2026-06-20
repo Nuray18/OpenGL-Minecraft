@@ -291,3 +291,56 @@ bool World::isChunkActive(int chunkX, int chunkZ)
 {
     return chunks.find({chunkX, chunkZ}) != chunks.end();
 }
+
+bool World::isSolid(BlockType type) const
+{
+    switch (type)
+    {
+    case BlockType::Air:
+    case BlockType::Water:
+        return false;
+    default:
+        return true;
+    }
+}
+
+bool World::checkCollision(const AABB &playerBox)
+{
+    int minX = floor(playerBox.min.x);
+    int maxX = floor(playerBox.max.x);
+
+    int minY = floor(playerBox.min.y);
+    int maxY = floor(playerBox.max.y);
+
+    int minZ = floor(playerBox.min.z);
+    int maxZ = floor(playerBox.max.z);
+
+    // blockları dolaşacağız
+    for (int x = minX; x <= maxX; x++)
+    {
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int z = minZ; z <= maxZ; z++)
+            {
+                // once bulundugumuz blocku aliyoruz
+                BlockType block = getBlockGlobal(x, y, z);
+
+                // eger kati ise devam (degil ise continue)
+                if (!isSolid(block))
+                    continue;
+
+                vec3 blockMin(x, y, z);                      // min
+                vec3 blockMax(x + 1.0f, y + 1.0f, z + 1.0f); // max
+
+                AABB blockBox(blockMin, blockMax);
+
+                if (Collision::CheckCollision(playerBox, blockBox))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
