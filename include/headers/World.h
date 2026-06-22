@@ -2,6 +2,7 @@
 #include "pair_hash.h"
 #include "Block.h"
 #include "headers/physics/Collision.h"
+#include "headers/debuging/DebugRenderer.h"
 
 #include <map>
 #include <list>
@@ -42,6 +43,8 @@ public:
     bool isAABBInFrustum(const glm::vec3 &min, const glm::vec3 &max, const glm::mat4 &viewProjMatrix);
     bool isSolid(BlockType type) const;
     bool checkCollision(const AABB &playerBox);
+
+    void drawDebugColliders(const vec3 &playerPosition);
 
 private:
     // location //chunk  so when we say chunks[{int x, int y}] = chunk* mean we are pointing to the chunk that is in the location of x and z

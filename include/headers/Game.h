@@ -67,6 +67,8 @@ private:
     unsigned int fragmentShader;
     unsigned int shaderProgram;
 
+    unsigned int debugShader;
+
     unsigned int texture1;
 
     // To move camera with same fp in each comp

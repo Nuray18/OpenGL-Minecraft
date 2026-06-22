@@ -344,3 +344,40 @@ bool World::checkCollision(const AABB &playerBox)
 
     return false;
 }
+
+void World::drawDebugColliders(const vec3 &playerPosition)
+{
+    for (auto &pair : chunks)
+    {
+        Chunk *chunk = pair.second;
+
+        for (int x = 0; x < CHUNK_WIDTH; x++)
+        {
+            for (int y = 0; y < CHUNK_HEIGHT; y++)
+            {
+                for (int z = 0; z < CHUNK_DEPTH; z++)
+                {
+                    BlockType block = chunk->getBlock(x, y, z);
+
+                    if (block == BlockType::Air)
+                        continue;
+
+                    int worldX = chunk->chunkX * CHUNK_WIDTH + x;
+                    int worldZ = chunk->chunkZ * CHUNK_DEPTH + z;
+
+                    float dx = worldX - playerPosition.x;
+                    float dy = y - playerPosition.y;
+                    float dz = worldZ - playerPosition.z;
+
+                    float distance = sqrt(dx * dx + dy * dy + dz * dz);
+
+                    if (distance > 5.0f)
+                        continue;
+                    AABB blockBox(vec3(worldX, y, worldZ), vec3(worldX + 1.0f, y + 1.0f, worldZ + 1.0f));
+
+                    DebugRenderer::drawAABB(blockBox);
+                }
+            }
+        }
+    }
+}

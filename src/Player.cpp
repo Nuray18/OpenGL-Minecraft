@@ -53,13 +53,25 @@ void Player::updateMovement(vec3 movementDirection, float deltaTime, World &worl
         moveDir = normalize(moveDir);
         vec3 oldPosition = position;
 
-        position += moveDir * speed * deltaTime;
+        // X hareketi
+        position.x += moveDir.x * speed * deltaTime;
 
         updateCollider();
 
         if (world.checkCollision(collider))
         {
-            position = oldPosition;
+            position.x = oldPosition.x;
+            updateCollider();
+        }
+
+        // Z hareketi
+        position.z += moveDir.z * speed * deltaTime;
+
+        updateCollider();
+
+        if (world.checkCollision(collider))
+        {
+            position.z = oldPosition.z;
             updateCollider();
         }
     }
@@ -157,6 +169,11 @@ void Player::getPlayerPos()
     float y = position.y;
     float z = position.z;
     cout << x << " " << y << " " << z << endl;
+}
+
+const AABB &Player::getCollider() const
+{
+    return collider;
 }
 
 /*

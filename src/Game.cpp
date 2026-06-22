@@ -106,23 +106,23 @@ GLuint Game::loadShaders(const char *vertexPath, const char *fragmentPath)
     const char *vShaderCode = vertexCode.c_str();
     const char *fShaderCode = fragmentCode.c_str();
 
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vShaderCode, NULL);
     glCompileShader(vertexShader);
 
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fShaderCode, NULL);
     glCompileShader(fragmentShader);
 
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    return shaderProgram;
+    return program;
 }
 
 void Game::checkShaderErrors()
@@ -201,7 +201,11 @@ void Game::setupOpenGL()
 {
     glViewport(0, 0, screenWidth, screenHeight);
 
-    loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
+    shaderProgram = loadShaders("src/shaders/VertexShader.glsl", "src/shaders/FragmentShader.glsl");
+
+    DebugRenderer::init();
+    debugShader = loadShaders("src/shaders/debugVertexShader.glsl", "src/shaders/debugFragmentShader.glsl");
+
     //   error checks
     checkShaderErrors();
     checkErrors();
@@ -242,7 +246,7 @@ void Game::processInput() // with this func we comunicate with game throuh input
     if (state[SDL_SCANCODE_D])
         movement.x += player.speed;
 
-    player.update(movement, deltaTime);
+    player.update(movement, deltaTime, world);
 
     // Zıplama ayrı tuşla çalışır
     if (state[SDL_SCANCODE_SPACE])
@@ -254,8 +258,8 @@ void Game::gameLoop()
     SDL_Event event;
     Uint32 lastTime = SDL_GetTicks(); // Son güncelleme zamanını al
 
-    // const float targetFPS = 60.0f;
-    // const float frameDelay = 1.0f / targetFPS;
+    const float targetFPS = 60.0f;
+    const float frameDelay = 1.0f / targetFPS;
 
     while (gameState != GameState::EXIT) // bu dogru oldugu surece kod calisir.
     {
@@ -293,12 +297,12 @@ void Game::gameLoop()
 
         render(); // Ekranı güncelleme. Eğer gameState == GameState::EXIT olursa, döngü sona erer. Bu durumda oyun artık render() fonksiyonunu çağırmaz ve ekranı yenilemez.
 
-        // float frameTime = (SDL_GetPerformanceCounter() - currentTime) / (float)SDL_GetPerformanceFrequency();
+        float frameTime = (SDL_GetPerformanceCounter() - currentTime) / (float)SDL_GetPerformanceFrequency();
 
-        // if (frameTime < frameDelay)
-        //{
-        //     SDL_Delay((Uint32)((frameDelay - frameTime) * 1000.0f));
-        // }
+        if (frameTime < frameDelay)
+        {
+            SDL_Delay((Uint32)((frameDelay - frameTime) * 1000.0f));
+        }
     }
 }
 
@@ -389,6 +393,13 @@ void Game::render() // textureler arasinda alfa degeri degistirmek icin lazim pa
     world.update(playerPosition, viewProjMatrix); // yeni chunki olustur
 
     world.render(shaderProgram, viewProjMatrix); // generate edilen dunyayi ekranda render et.
+
+    glUseProgram(debugShader);
+    glLineWidth(3.0f);
+    glUniformMatrix4fv(glGetUniformLocation(debugShader, "viewProjection"), 1, GL_FALSE, value_ptr(viewProjMatrix));
+
+    DebugRenderer::drawAABB(player.getCollider());
+    world.drawDebugColliders(player.getPosition());
 
     SDL_GL_SwapWindow(window);
 }

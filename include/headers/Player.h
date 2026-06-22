@@ -25,6 +25,8 @@ public:
 
     vec3 getPosition() const;
 
+    const AABB &getCollider() const;
+
     float speed = 10.0f;
 
 private:
